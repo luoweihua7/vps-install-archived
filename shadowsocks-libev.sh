@@ -36,6 +36,7 @@ function Install() {
     ./configure
     make && make install
 
+    # TODO Check install result
     echo ""
     Add
 }
