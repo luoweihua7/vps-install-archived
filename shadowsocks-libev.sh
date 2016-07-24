@@ -76,9 +76,9 @@ function Add() {
 }
 
 function Firewall() {
-	PORT=$1
+    PORT=$1
 
-	echo ""
+    echo ""
     if SystenVersion 6; then
         /etc/init.d/iptables status > /dev/null 2>&1
         if [ $? -eq 0 ]; then
