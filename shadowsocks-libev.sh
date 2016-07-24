@@ -15,10 +15,12 @@ function Install() {
     ./configure
     make && make install
 
+    echo ""
     Add
 }
 
 function Add() {
+    echo "Add shadowsocks config"
     read -p "Please input password (Default: qwertyuiop):" PASSWORD
     [ -z "$PASSWORD" ] && PASSWORD="qwertyuiop"
 
