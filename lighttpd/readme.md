@@ -1,4 +1,4 @@
 # Merlin lighttpd setup
 
 **install script**
-> wget https://github.com/luoweihua7/vps-install/raw/master/lighttpd/install.sh
+> wget -N --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master/lighttpd/install_lighttpd.sh && bash install_lighttpd.sh
