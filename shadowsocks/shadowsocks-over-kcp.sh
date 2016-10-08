@@ -173,9 +173,9 @@ function add_service() {
 
     add_firewall $kcpport
 
-    nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46 > /dev/null 2>&1 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u > /dev/null & 2>&1 &
+    nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46 > /dev/null 2>&1 & $default_ss_path -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u > /dev/null & 2>&1 &
 
-    echo "nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46 > /dev/null 2>&1 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u > /dev/null & 2>&1 &" >> /etc/rc.local
+    echo "nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46 > /dev/null 2>&1 & $$default_ss_path -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u > /dev/null & 2>&1 &" >> /etc/rc.local
 
     sleep 2
 
