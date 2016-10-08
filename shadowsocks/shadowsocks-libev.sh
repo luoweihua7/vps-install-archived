@@ -38,7 +38,7 @@ function Install() {
 
     # TODO Check install result
     echo ""
-    Add
+    start
 }
 
 function Add() {
@@ -116,13 +116,17 @@ function Firewall() {
     echo "Firewall set completed..."
 }
 
-echo "which do you want to? Input the number and press enter."
-echo "1. Install"
-echo "2. Add port"
-read num
+function start() {
+    echo "which do you want to? Input the number and press enter."
+    echo "1. Install"
+    echo "2. Add port"
+    read num
 
-case "$num" in
-[1] ) (Install);;
-[2] ) (Add);;
-*) echo "";;
-esac
+    case "$num" in
+    [1] ) (Install);;
+    [2] ) (Add);;
+    *) echo "";;
+    esac
+}
+
+start
