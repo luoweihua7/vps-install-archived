@@ -41,7 +41,7 @@ function install_shadowsocks() {
     yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
     wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v${VERSION}.zip -O /tmp/shadowsocks-libev-${VERSION}.zip
-    unzip /tmp/shadowsocks-libev-${VERSION}.zip
+    unzip /tmp/shadowsocks-libev-${VERSION}.zip -d /tmp
     cd /tmp/shadowsocks-libev-${VERSION}
     ./configure
     make && make install
