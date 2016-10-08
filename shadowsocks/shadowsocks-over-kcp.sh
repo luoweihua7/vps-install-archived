@@ -42,7 +42,7 @@ function get_char(){
 }
 
 function install_shadowsocks() {
-    read -p "Which version do you want to install? (Default: 2.5.3)" VERSION
+    read -p "Which version do you want to install? (Default: 2.5.3) " VERSION
     [ -z "$VERSION" ] && VERSION="2.5.3"
 
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
@@ -83,7 +83,7 @@ function add_service() {
     # set Kcptun port
     while true
     do
-    read -p "Please input Kcptun port (Default $default_kcp_port)[1-65535]" kcpport
+    read -p "Please input Kcptun port (Default $default_kcp_port)[1-65535] " kcpport
     [ -z "$kcpport" ] && kcpport=$default_kcp_port
     expr $kcpport + 0 &>/dev/null
     if [ $? -eq 0 ]; then
@@ -103,7 +103,7 @@ function add_service() {
     echo "2: fast2"
     echo "3: fast3"
     echo "4: normal"
-    read -p "Enter your choice (1, 2, 3, 4. default [2]): " kcpmode
+    read -p "Enter your choice (1, 2, 3, 4. default [2]) " kcpmode
     case "$kcpmode" in
         1|[fF][aA][sS][tT])
             kcpmode="fast"
@@ -123,13 +123,13 @@ function add_service() {
     esac
 
     # set Shadowsocks password
-    read -p "Please input Shadowsocks password (Default: qwertyuiop)" sspwd
+    read -p "Please input Shadowsocks password (Default: qwertyuiop) " sspwd
     [ -z "$sspwd" ] && sspwd=$default_ss_pwd
 
     # set Shadowsocks port
     while true
     do
-    read -p "Please input Shadowsocks port (Default: 8989)" ssport
+    read -p "Please input Shadowsocks port (Default: 8989) " ssport
     [ -z "$ssport" ] && ssport=$default_ss_port
     expr $ssport + 0 &>/dev/null
     if [ $? -eq 0 ]; then
@@ -150,7 +150,7 @@ function add_service() {
     echo "3: aes-256-cfb"
     echo "4: chacha20"
     echo "5: chacha20-ietf"
-    read -p "Enter your choice (1, 2, 3, 4 or 5. default [4]): " ssencrypt
+    read -p "Enter your choice (1, 2, 3, 4 or 5. default [4]) " ssencrypt
     case "$ssencrypt" in
         1)
             ssencrypt="rc4-md5"
@@ -181,9 +181,9 @@ function add_service() {
 
     add_firewall $kcpport
 
-    nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1200 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &
+    nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u > /dev/null &
 
-    echo "nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1200 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &" >> /etc/rc.local
+    echo "nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &" >> /etc/rc.local
 
     echo ""
     echo -e "Server IP is\t\t\t\033[32m$localip\033[0m"
