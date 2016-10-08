@@ -3,7 +3,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 function set_color(){
-	COLOR_RED='\E[1;31m'
+    COLOR_RED='\E[1;31m'
     COLOR_GREEN='\E[1;32m'
     COLOR_YELOW='\E[1;33m'
     COLOR_BLUE='\E[1;34m'
@@ -59,29 +59,29 @@ function install_shadowsocks() {
 }
 
 function install_kcptun() {
-	wget --no-check-certificate https://github.com/clangcn/kcp-server/raw/master/install-kcp-server.sh -O ~/install-kcp-server.sh
-	sh ~/install-kcp-server.sh install
+    wget --no-check-certificate https://github.com/clangcn/kcp-server/raw/master/install-kcp-server.sh -O ~/install-kcp-server.sh
+    sh ~/install-kcp-server.sh install
 
     echo "Kcptun Server installed"
 }
 
 function install_all(){
-	install_shadowsocks
-	install_kcptun
-	start
+    install_shadowsocks
+    install_kcptun
+    start
 }
 
 function add_service() {
-	default_kcp_path="/usr/local/kcp-server/kcp-server"
-	default_kcp_port="10080"
-	default_kcp_mode="fast2"
-	default_ss_path="/usr/local/bin/ss-server"
-	default_ss_port="8989"
-	default_ss_pwd="qwertyuiop"
-	default_ss_encrypt="chacha20"
+    default_kcp_path="/usr/local/kcp-server/kcp-server"
+    default_kcp_port="10080"
+    default_kcp_mode="fast2"
+    default_ss_path="/usr/local/bin/ss-server"
+    default_ss_port="8989"
+    default_ss_pwd="qwertyuiop"
+    default_ss_encrypt="chacha20"
 
-	# set Kcptun port
-	while true
+    # set Kcptun port
+    while true
     do
     read -p "Please input Kcptun port (Default $default_kcp_port)[1-65535]" kcpport
     [ -z "$kcpport" ] && kcpport=$default_kcp_port
