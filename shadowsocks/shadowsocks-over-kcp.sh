@@ -33,21 +33,37 @@ function get_char(){
     stty $SAVEDSTTY
 }
 
+function fun_randstr(){
+  index=0
+  strRandomPass=""
+  for i in {a..z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+  for i in {A..Z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+  for i in {0..9}; do arr[index]=$i; index=`expr ${index} + 1`; done
+  for i in {1..16}; do strRandomPass="$strRandomPass${arr[$RANDOM%$index]}"; done
+  echo $strRandomPass
+}
+
 function install_shadowsocks() {
+	cd ~/
+	echo ""
     read -p "Which version do you want to install? (Default: 2.5.3) " VERSION
     [ -z "$VERSION" ] && VERSION="2.5.3"
 
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
     yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
-    wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v${VERSION}.zip -O /tmp/shadowsocks-libev-${VERSION}.zip
-    unzip /tmp/shadowsocks-libev-${VERSION}.zip -d /tmp
-    cd /tmp/shadowsocks-libev-${VERSION}
+    wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v$VERSION.zip -O shadowsocks-libev-$VERSION.zip
+    unzip -o shadowsocks-libev-$VERSION.zip
+    cd shadowsocks-libev-$VERSION
     ./configure
     make && make install
-    rm -rf /tmp/shadowsocks-libev-${VERSION}*
+
+    # clean up
+    cd ~/
+    rm -rf ./shadowsocks-libev-$VERSION* > /dev/null
 
     echo "Shadowsocks-libev installed"
+    echo ""
 }
 
 function install_kcptun() {
@@ -55,6 +71,7 @@ function install_kcptun() {
     sh ~/install-kcp-server.sh install
 
     echo "Kcptun Server installed"
+    echo ""
 }
 
 function install_all(){
@@ -68,13 +85,14 @@ function add_service() {
     default_kcp_port="10800"
     default_kcp_mode="fast2"
     default_ss_path="/usr/local/bin/ss-server"
-    default_ss_port="8989"
-    default_ss_pwd="qwertyuiop"
+    default_ss_port="9090"
+    default_ss_pwd=`fun_randstr`
     default_ss_encrypt="chacha20"
 
     # set Kcptun port
     while true
     do
+    echo ""
     read -p "Please input Kcptun port (Default $default_kcp_port)[1-65535] " kcpport
     [ -z "$kcpport" ] && kcpport=$default_kcp_port
     expr $kcpport + 0 &>/dev/null
@@ -90,6 +108,7 @@ function add_service() {
     done
 
     # set Kcptun fast mode
+    echo ""
     echo "Please select Kcptun fast mode"
     echo "1: fast"
     echo "2: fast2"
@@ -115,13 +134,15 @@ function add_service() {
     esac
 
     # set Shadowsocks password
-    read -p "Please input Shadowsocks password (Default: qwertyuiop) " sspwd
+    echo ""
+    read -p "Please input Shadowsocks password (Default: $default_ss_pwd) " sspwd
     [ -z "$sspwd" ] && sspwd=$default_ss_pwd
 
     # set Shadowsocks port
     while true
     do
-    read -p "Please input Shadowsocks port (Default: 8989) " ssport
+    echo ""
+    read -p "Please input Shadowsocks port (Default: $default_ss_port) " ssport
     [ -z "$ssport" ] && ssport=$default_ss_port
     expr $ssport + 0 &>/dev/null
     if [ $? -eq 0 ]; then
@@ -185,7 +206,8 @@ function add_service() {
     echo -e "Shadowsocks Password is\t\t\033[32m$sspwd\033[0m"
     echo -e "Shadowsocks Encrypt Method is\t\033[32m$ssencrypt\033[0m"
     echo -e "Kcptun Port is\t\t\t\033[32m$kcpport\033[0m"
-    echo -e "Kcptun Parameter is\t\t\033[32m--crypt none --mtu 1200 --nocomp --mode $kcpmode --dscp 46\033[0m"
+    echo -e "Kcptun Parameter is\t\t\033[32m--crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46\033[0m"
+    echo ""
     echo ""
 }
 
@@ -196,14 +218,14 @@ function add_firewall() {
     if sys_version 6; then
         /etc/init.d/iptables status > /dev/null 2>&1
         if [ $? -eq 0 ]; then
-            iptables -L -n | grep '${PORT}' | grep 'ACCEPT' > /dev/null 2>&1
+            iptables -L -n | grep '$PORT' | grep 'ACCEPT' > /dev/null 2>&1
             if [ $? -ne 0 ]; then
-                iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport ${PORT} -j ACCEPT
-                iptables -I INPUT -m state --state NEW -m udp -p udp --dport ${PORT} -j ACCEPT
+                iptables -I INPUT -m state --state NEW -m tcp -p tcp --dport $PORT -j ACCEPT
+                iptables -I INPUT -m state --state NEW -m udp -p udp --dport $PORT -j ACCEPT
                 service iptables save
                 service iptables restart
             else
-                echo "Port ${PORT} has been set up."
+                echo "Port $PORT has been set up."
             fi
         else
             echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown or not installed, please manually set it if necessary."
@@ -211,18 +233,18 @@ function add_firewall() {
     elif sys_version 7; then
         systemctl status firewalld > /dev/null 2>&1
         if [ $? -eq 0 ];then
-            firewall-cmd --permanent --zone=public --add-port=${PORT}/tcp
-            firewall-cmd --permanent --zone=public --add-port=${PORT}/udp
+            firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
+            firewall-cmd --permanent --zone=public --add-port=$PORT/udp
             firewall-cmd --reload
         else
             echo "Firewalld looks like not running, try to start..."
             systemctl start firewalld
             if [ $? -eq 0 ];then
-                firewall-cmd --permanent --zone=public --add-port=${PORT}/tcp
-                firewall-cmd --permanent --zone=public --add-port=${PORT}/udp
+                firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
+                firewall-cmd --permanent --zone=public --add-port=$PORT/udp
                 firewall-cmd --reload
             else
-                echo -e "\033[41;37m WARNING \033[0m Try to start firewalld failed. please enable port ${PORT} manually if necessary."
+                echo -e "\033[41;37m WARNING \033[0m Try to start firewalld failed. please enable port $PORT manually if necessary."
             fi
         fi
     fi
@@ -230,6 +252,7 @@ function add_firewall() {
 }
 
 function start() {
+	echo ""
     echo "Which do you want to? Input the number and press enter (other to exit)"
     echo "1. Install Kcptun and Shadowsocks-libev"
     echo "2. Add shadowsocks over kcptun task"
