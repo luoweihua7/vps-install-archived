@@ -185,7 +185,7 @@ function add_service() {
 
     echo "nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1350 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &" >> /etc/rc.local
 
-    sleep 1
+    sleep 2
 
     echo ""
     echo -e "Server IP is\t\t\t\033[32m$localip\033[0m"
