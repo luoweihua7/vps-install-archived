@@ -2,14 +2,6 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-function set_color(){
-    COLOR_RED='\E[1;31m'
-    COLOR_GREEN='\E[1;32m'
-    COLOR_YELOW='\E[1;33m'
-    COLOR_BLUE='\E[1;34m'
-    COLOR_END='\E[0m'
-}
-
 # Get version
 function get_os_version(){
     if [[ -s /etc/redhat-release ]];then
@@ -250,5 +242,4 @@ function start() {
     esac
 }
 
-set_color
 start
