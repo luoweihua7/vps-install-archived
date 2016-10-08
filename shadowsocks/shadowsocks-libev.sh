@@ -24,11 +24,11 @@ function SystenVersion(){
 }
 
 function Install() {
-    read -p "Which version do you want to install? (Default: 2.4.7)" VERSION
-    [ -z "$VERSION" ] && VERSION="2.4.7"
+    read -p "Which version do you want to install? (Default: 2.5.3)" VERSION
+    [ -z "$VERSION" ] && VERSION="2.5.3"
 
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
-    yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc
+    yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
     wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v${VERSION}.zip -O shadowsocks-libev-${VERSION}.zip
     unzip shadowsocks-libev-${VERSION}.zip
