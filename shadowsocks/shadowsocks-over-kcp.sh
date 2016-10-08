@@ -43,6 +43,13 @@ function fun_randstr(){
   echo $strRandomPass
 }
 
+function random(){  
+    min=$1  
+    max=$(($2-$min+1))  
+    num=$(($RANDOM+1000000000))  
+    echo $(($num%$max+$min))  
+}
+
 function install_shadowsocks() {
 	cd ~/
 	echo ""
@@ -82,10 +89,10 @@ function install_all(){
 
 function add_service() {
     default_kcp_path="/usr/local/kcp-server/kcp-server"
-    default_kcp_port="10800"
+    default_kcp_port=`random 10000 30000`
     default_kcp_mode="fast2"
     default_ss_path="/usr/local/bin/ss-server"
-    default_ss_port="9090"
+    default_ss_port=`random 30001 60000`
     default_ss_pwd=`fun_randstr`
     default_ss_encrypt="chacha20"
 
