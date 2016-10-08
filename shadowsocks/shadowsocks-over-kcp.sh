@@ -73,7 +73,7 @@ function install_all(){
 
 function add_service() {
     default_kcp_path="/usr/local/kcp-server/kcp-server"
-    default_kcp_port="10080"
+    default_kcp_port="10800"
     default_kcp_mode="fast2"
     default_ss_path="/usr/local/bin/ss-server"
     default_ss_port="8989"
