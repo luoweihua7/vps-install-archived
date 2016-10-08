@@ -120,6 +120,7 @@ function start() {
     echo "which do you want to? Input the number and press enter."
     echo "1. Install"
     echo "2. Add port"
+    echo "input other to exit"
     read num
 
     case "$num" in
