@@ -181,9 +181,9 @@ function add_service() {
 
     add_firewall $kcpport
 
-    # nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1200 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &
+    nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1200 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &
 
-    # echo "nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1200 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &" >> /etc/rc.local
+    echo "nohup $default_kcp_path -l :$kcpport -t 127.0.0.1:$ssport --crypt none --mtu 1200 --nocomp --mode $kcpmode --dscp 46 & ss-server -s 0.0.0.0 -p $ssport -k $sspwd -m $ssencrypt -u &" >> /etc/rc.local
 
     echo ""
     echo -e "Server IP is\t\t\t\033[32m$localip\033[0m"
