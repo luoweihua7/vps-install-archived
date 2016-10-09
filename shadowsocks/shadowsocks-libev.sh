@@ -115,18 +115,18 @@ function add_service() {
             ;;
     esac
 
-    localip=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk 'NR==1 { print $1}'`
+    LOCALIP=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk 'NR==1 { print $1}'`
 
     Firewall ${PORT}
 
-    nohup /usr/local/bin/ss-server -s $localip -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 &
-    echo "nohup /usr/local/bin/ss-server -s ${IP} -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 & " >> /etc/rc.local
+    nohup /usr/local/bin/ss-server -s $LOCALIP -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 &
+    echo "nohup /usr/local/bin/ss-server -s $LOCALIP -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 & " >> /etc/rc.local
 
     echo ""
-    echo -e "Your public IP is\t\033[32m$IP\033[0m"
+    echo -e "Your public IP is\t\033[32m$LOCALIP\033[0m"
     echo -e "Your Server Port is\t\033[32m$PORT\033[0m"
     echo -e "Your Password is\t\033[32m$PASSWORD\033[0m"
-    echo -e "Your Encryption Method\t\033[32ma$ENCRYPT\033[0m"
+    echo -e "Your Encryption Method\t\033[32m$ENCRYPT\033[0m"
     echo ""
 }
 
