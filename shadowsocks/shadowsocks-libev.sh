@@ -117,7 +117,7 @@ function add_service() {
 
     LOCALIP=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk 'NR==1 { print $1}'`
 
-    Firewall ${PORT}
+    add_firewall ${PORT}
 
     nohup /usr/local/bin/ss-server -s $LOCALIP -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 &
     echo "nohup /usr/local/bin/ss-server -s $LOCALIP -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 & " >> /etc/rc.local
