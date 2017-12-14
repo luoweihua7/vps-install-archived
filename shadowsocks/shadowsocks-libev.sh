@@ -115,7 +115,7 @@ function add_service() {
             ;;
     esac
 
-    LOCALIP=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk 'NR==1 { print $1}'`
+    LOCALIP="0.0.0.0"
 
     add_firewall ${PORT}
 
