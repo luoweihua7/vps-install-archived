@@ -41,9 +41,11 @@ function random(){
 }
 
 function install_shadowsocks() {
-    read -p "Which version do you want to install? (Default: 2.5.5)" VERSION
-    [ -z "$VERSION" ] && VERSION="2.5.5"
+    # read -p "Which version do you want to install? (Default: 2.5.5)" VERSION
+    # [ -z "$VERSION" ] && VERSION="2.5.5"
 
+    echo "Installing shadowsocks-libev 2.5.5"
+    VERSION="2.5.5
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
     yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
