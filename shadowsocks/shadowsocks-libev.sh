@@ -116,41 +116,23 @@ function add_service() {
 function add_firewall() {
     PORT=$1
 
-    echo ""
-    if sys_version 6; then
-        /etc/init.d/iptables status > /dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            iptables -L -n | grep '$PORT' | grep 'ACCEPT' > /dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
-                iptables -I INPUT -p udp --dport $PORT -j ACCEPT
-                service iptables save
-                service iptables restart
-            else
-                echo "Port $PORT has been set up."
-            fi
+    echo "Only support iptables."
+    echo "Start setting..."
+    /etc/init.d/iptables status > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        iptables -L -n | grep '$PORT' | grep 'ACCEPT' > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
+            iptables -I INPUT -p udp --dport $PORT -j ACCEPT
+            service iptables save
+            service iptables restart
         else
-            echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown or not installed, please manually set it if necessary."
+            echo "Port $PORT has been set up."
         fi
-    elif sys_version 7; then
-        systemctl status firewalld > /dev/null 2>&1
-        if [ $? -eq 0 ];then
-            firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
-            firewall-cmd --permanent --zone=public --add-port=$PORT/udp
-            firewall-cmd --reload
-        else
-            echo "Firewalld looks like not running, try to start..."
-            systemctl start firewalld
-            if [ $? -eq 0 ];then
-                firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
-                firewall-cmd --permanent --zone=public --add-port=$PORT/udp
-                firewall-cmd --reload
-            else
-                echo -e "\033[41;37m WARNING \033[0m Try to start firewalld failed. please enable port $PORT manually if necessary."
-            fi
-        fi
+    else
+        echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown or not installed, please manually set it if necessary."
     fi
-    echo "Firewall set completed..."
+    echo "Firewall setup completed..."
 }
 
 function install_shadowsocks() {
