@@ -170,16 +170,40 @@ function add_firewall() {
     echo "Firewall set completed..."
 }
 
+function uninstall() {
+    rm -f /usr/local/bin/ss-local
+    rm -f /usr/local/bin/ss-tunnel
+    rm -f /usr/local/bin/ss-server
+    rm -f /usr/local/bin/ss-manager
+    rm -f /usr/local/bin/ss-redir
+    rm -f /usr/local/bin/ss-nat
+    rm -f /usr/local/lib/libshadowsocks-libev.a
+    rm -f /usr/local/lib/libshadowsocks-libev.la
+    rm -f /usr/local/include/shadowsocks.h
+    rm -f /usr/local/lib/pkgconfig/shadowsocks-libev.pc
+    rm -f /usr/local/share/man/man1/ss-local.1
+    rm -f /usr/local/share/man/man1/ss-tunnel.1
+    rm -f /usr/local/share/man/man1/ss-server.1
+    rm -f /usr/local/share/man/man1/ss-manager.1
+    rm -f /usr/local/share/man/man1/ss-redir.1
+    rm -f /usr/local/share/man/man1/ss-nat.1
+    rm -f /usr/local/share/man/man8/shadowsocks-libev.8
+    rm -fr /usr/local/share/doc/shadowsocks-libev
+    echo "All files removed!"
+}
+
 function start() {
     echo ""
     echo "Which do you want to? Input the number and press enter."
     echo "1. Install"
     echo "2. Add port"
+    echo "3. Uninstall"
     read num
 
     case "$num" in
     [1] ) (install_shadowsocks);;
     [2] ) (add_service);;
+    [3] ) (uninstall);;
     *) echo "";;
     esac
 }
