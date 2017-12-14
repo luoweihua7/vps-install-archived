@@ -157,6 +157,8 @@ function install_shadowsocks() {
     if sys_version 6; then
         wget -P /etc/yum.repos.d/ ${epel_centos6}
     elif sys_version 7; then
+        yum install epel-release -y
+        yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel -y
         wget -P /etc/yum.repos.d/ ${epel_centos7}
     fi
 
