@@ -47,8 +47,8 @@ function install_shadowsocks() {
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
     yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
-    wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v$VERSION.zip -O shadowsocks-libev-$VERSION.zip
-    unzip shadowsocks-libev-$VERSION.zip
+    wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v$VERSION.tar.gz -O shadowsocks-libev-$VERSION.tar.gz
+    tar -zxf shadowsocks-libev-$VERSION.tar.gz
     cd shadowsocks-libev-$VERSION
     ./configure
     make && make install
