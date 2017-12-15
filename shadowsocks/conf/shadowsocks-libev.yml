@@ -1,0 +1,9 @@
+type: s
+empty: false
+
+shadowsocks:
+  address: 127.0.0.1:SSPORT
+manager:
+  address: 127.0.0.1:SMPORT
+  password: 'SMPASSWD'
+db: 'ss.sqlite'

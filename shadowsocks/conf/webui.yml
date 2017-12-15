@@ -3,8 +3,8 @@ empty: false
 
 manager:
     # 信息要跟shadowsocks-libev上的一致
-    address: 127.0.0.1:38888
-    password: 'DBzUKkCZ7dvBApFTbVqdsiEE'
+    address: 127.0.0.1:SMPORT
+    password: 'SMPASSWD'
 
 plugins:
     flowSaver:
@@ -34,8 +34,8 @@ plugins:
                 flow: 200000000000
     email:
         use: true
-        username: 'example@outlook.com'
-        password: 'password'
+        username: 'EMAILADDR@outlook.com'
+        password: 'EMAILPASSWD'
         host: 'smtp-mail.outlook.com'
         port: 587
         
