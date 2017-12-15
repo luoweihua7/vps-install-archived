@@ -29,7 +29,7 @@ function install_manager() {
     mkdir -p ${CONF_PATH}
 
     echo "Start download source code..."
-    git clone https://github.com/shadowsocks/shadowsocks-manager.git ${SRC_PATH}
+    git clone https://github.com/shadowsocks/shadowsocks-manager.git ${SRC_PATH}${PROJ_NAME}
     cd ${SRC_PATH}${PROJ_NAME}
     npm i
     echo "Souce code download completed."
