@@ -1,0 +1,55 @@
+type: m
+empty: false
+
+manager:
+    # 信息要跟shadowsocks-libev上的一致
+    address: 127.0.0.1:38888
+    password: 'DBzUKkCZ7dvBApFTbVqdsiEE'
+
+plugins:
+    flowSaver:
+        use: true
+    user:
+        use: true
+    account:
+        use: true
+        pay:
+            hour:
+                price: 0.05
+                flow: 500000000
+            day:
+                price: 0.5
+                flow: 7000000000
+            week:
+                price: 3
+                flow: 50000000000
+            month:
+                price: 10
+                flow: 200000000000
+            season:
+                price: 30
+                flow: 200000000000
+            year:
+                price: 120
+                flow: 200000000000
+    email:
+        use: true
+        username: 'example@outlook.com'
+        password: 'password'
+        host: 'smtp-mail.outlook.com'
+        port: 587
+        
+    webgui:
+        use: true
+        host: '0.0.0.0'
+        port: '8080'
+        site: 'http://127.0.0.1/'
+    alipay:
+        use: true
+        appid: 
+        notifyUrl: ''
+        merchantPrivateKey: ''
+        alipayPublicKey: ''
+        gatewayUrl: 'https://openapi.alipay.com/gateway.do'
+        
+db: 'webgui.sqlite'
