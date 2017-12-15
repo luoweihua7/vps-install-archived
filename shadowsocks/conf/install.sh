@@ -5,6 +5,7 @@ export PATH
 CONF_PATH="/home/conf/shadowsocks"
 SRC_PATH="/home/github/"
 PROJ_NAME="shadowsocks-manager"
+MANAGER_PORT="4000"
 
 function fun_randstr(){
   index=0
@@ -56,7 +57,7 @@ function download_conf() {
 
     echo ""
     read -p "Please input ss-manager port (Default: $default_ss_manager_port):" SMPORT
-    [ -z "$SMPORT" ] && SMPORT=$default_ss_manager_port
+    [ -z "$SMPORT" ] && SMPORT=$default_ss_manager_port && MANAGER_PORT=$SMPORT
 
     echo ""
     read -p "Please input webui port (Default: $default_web_port):" WEBPORT
@@ -104,6 +105,8 @@ function install_deps(){
 }
 
 function startup() {
+    echo "nohup ss-manager -m aes-256-cfb -u --manager-address 127.0.0.1:$MANAGER_PORT >> /var/log/ss-manager.log > /dev/null 2>&1 &" >> /etc/rc.local
+    nohup ss-manager -m aes-256-cfb -u --manager-address 127.0.0.1:$MANAGER_PORT >> /var/log/ss-manager.log > /dev/null 2>&1 &
     pm2 start /home/conf/shadowsocks/app.config.json
 }
 
