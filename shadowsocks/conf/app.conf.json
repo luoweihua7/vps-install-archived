@@ -7,7 +7,7 @@
             "watch": true,
             "exec_mode": "cluster",
             "max_memory_restart": "512M",
-            "args": "-c CONFIGPATH/shadowsocks-libev.yml"
+            "args": "-c CONF_PATH/shadowsocks-libev.yml"
         }
     ]
 }

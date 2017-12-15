@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-CONF_PATH="/home/conf/shadowsocks/"
+CONF_PATH="/home/conf/shadowsocks"
 SRC_PATH="/home/github/"
 PROJ_NAME="shadowsocks-manager"
 
@@ -69,7 +69,6 @@ function download_conf() {
         if [ ! -n "${EMAILADDR}" ]; then
             echo "Input error! Please input correct username."
         else
-            echo "your input is ${EMAILADDR}"
             break
         fi
     done
@@ -81,18 +80,22 @@ function download_conf() {
         if [ ! -n "${EMAILPASSWD}" ]; then
             echo "Input error! Please input correct password."
         else
-            echo "your input is ${EMAILPASSWD}"
             break
         fi
     done
 
-    sed -i "s#SSPORT#${SSPORT}#g" ${CONF_PATH}shadowsocks-libev.yml
-    sed -i "s#SMPORT#${SMPORT}#g" ${CONF_PATH}shadowsocks-libev.yml
-    sed -i "s#SMPASSWD#${SMPASSWD}#g" ${CONF_PATH}shadowsocks-libev.yml
-    sed -i "s#SMPORT#${SMPORT}#g" ${CONF_PATH}webui.yml
-    sed -i "s#SMPASSWD#${SMPASSWD}#g" ${CONF_PATH}webui.yml
-    sed -i "s#EMAILADDR#${EMAILADDR}#g" ${CONF_PATH}webui.yml
-    sed -i "s#EMAILPASSWD#${EMAILPASSWD}#g" ${CONF_PATH}webui.yml
+    sed -i "s#SSPORT#${SSPORT}#g" ${CONF_PATH}/shadowsocks-libev.yml
+    sed -i "s#SMPORT#${SMPORT}#g" ${CONF_PATH}/shadowsocks-libev.yml
+    sed -i "s#SMPASSWD#${SMPASSWD}#g" ${CONF_PATH}/shadowsocks-libev.yml
+
+    sed -i "s#SMPORT#${SMPORT}#g" ${CONF_PATH}/webui.yml
+    sed -i "s#SMPASSWD#${SMPASSWD}#g" ${CONF_PATH}/webui.yml
+    sed -i "s#EMAILADDR#${EMAILADDR}#g" ${CONF_PATH}/webui.yml
+    sed -i "s#EMAILPASSWD#${EMAILPASSWD}#g" ${CONF_PATH}/webui.yml
+    sed -i "s#WEBPORT#${WEBPORT}#g" ${CONF_PATH}/webui.yml
+
+    sed -i "s#APPCWD#${SRC_PATH}${PROJ_NAME}#g" ${CONF_PATH}/app.conf.json
+    sed -i "s#CONF_PATH#${CONF_PATH}#g" ${CONF_PATH}/app.conf.json
 }
 
 function install_deps(){
@@ -111,4 +114,4 @@ function install_all(){
     startup
 }
 
-download_conf
+install_all
