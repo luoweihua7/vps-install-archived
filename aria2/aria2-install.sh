@@ -23,6 +23,7 @@ function sys_version(){
 
 function install_aria2c() {
     mkdir /home/conf/aria2 -p
+    mkdir /home/downloads -p
 
     wget --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz
     echo "Unzip file..."
