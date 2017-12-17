@@ -24,6 +24,7 @@ function sys_version(){
 function install_aria2c() {
     mkdir /home/conf/aria2 -p
     mkdir /home/downloads -p
+    mkdir /home/www -p
 
     wget --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz
     echo "Unzip file..."
@@ -35,11 +36,12 @@ function install_aria2c() {
     mv /home/conf/aria2/aria2c.sh /etc/init.d/aria2c
     chmod 755 /etc/init.d/aria2c
 
+    chkconfig --add aria2c
+    chkconfig aria2c on
+
     if sys_version 6; then
         service aria2c start
     elif sys_version 7; then
-        chkconfig --add aria2c
-        chkconfig aria2c on
         systemctl daemon-reload
         systemctl enable aria2c
         systemctl start aria2c
@@ -47,6 +49,29 @@ function install_aria2c() {
 
     echo ""
     echo "Aria2 installed."
+
+    echo ""
+    echo "Setup AriaNg..."
+
+    git clone https://github.com/mayswind/AriaNg.git /tmp/AriaNg
+    npm i -g gulp bower
+    cd /tmp/AriaNg
+    npm install
+    bower install --allow-root
+    gulp clean build
+    npm remove -g gulp bower
+
+    mkdir /home/www/aria2 -p
+    mv /tmp/AriaNg/dist/* /home/www/aria2 -f
+    cd /home
+    rm -rf /tmp/AriaNg/
+
+    echo ""
+    echo "Config nginx folder..."
+    mv /home/conf/aria2/nginx.*.conf /etc/nginx/default.d/
+    service nginx restart
+
+    echo "All done!"
 }
 
 function uninstall_aria2c() {
@@ -64,6 +89,8 @@ function uninstall_aria2c() {
 
     rm -rf /usr/local/bin/aria2c
     rm -rf /home/conf/aria2
+	rm -rf /home/www/aria2
+    rm -rf /etc/nginx/default.d/nginx.*.conf
 
     echo ""
     echo "All aria2 files removed."
