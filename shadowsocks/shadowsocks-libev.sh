@@ -135,6 +135,25 @@ function add_firewall() {
     echo "Firewall setup completed..."
 }
 
+# Config shadowsocks
+function config_shadowsocks() {
+	# https://github.com/91yun/shadowsocks_install/blob/master/shadowsocks-libev.sh
+	# port,password,encryption-method
+    mkdir /home/conf/shadowsocks -p
+
+    cat > /home/conf/shadowsocks/config.json<<-EOF
+{
+    "server":"0.0.0.0",
+    "server_port":${1},
+    "local_address":"127.0.0.1",
+    "local_port":1080,
+    "password":"${2}",
+    "timeout":600,
+    "method":"${3}"
+}
+EOF
+}
+
 function install_shadowsocks() {
     if sys_version 6; then
         wget -P /etc/yum.repos.d/ ${epel_centos6}
