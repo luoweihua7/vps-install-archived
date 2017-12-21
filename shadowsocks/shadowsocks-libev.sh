@@ -2,6 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
+conf_file_path="/home/conf/shadowsocks"
 epel_centos6="https://copr.fedorainfracloud.org/coprs/librehat/shadowsocks/repo/epel-6/librehat-shadowsocks-epel-6.repo"
 epel_centos7="https://copr.fedorainfracloud.org/coprs/librehat/shadowsocks/repo/epel-7/librehat-shadowsocks-epel-7.repo"
 
@@ -43,18 +44,39 @@ function random(){
     echo $(($num%$max+$min))  
 }
 
+function install_shadowsocks() {
+    if sys_version 6; then
+        wget -P /etc/yum.repos.d/ ${epel_centos6}
+    elif sys_version 7; then
+        yum install epel-release -y
+        yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel -y
+        wget -P /etc/yum.repos.d/ ${epel_centos7}
+    fi
+
+    yum install shadowsocks-libev -y
+
+    wget --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh -O /etc/init.d/shadowsocks
+    chmod 755 /etc/init.d/shadowsocks
+    chkconfig --add shadowsocks
+    chkconfig shadowsocks on
+
+    echo ""
+    echo -e "\033[42;37m SUCCESS \033[0m Shadowsocks installed."
+    start
+}
+
 function add_service() {
     default_password=`fun_randstr`
     default_port=`random 10000 60000`
 
     echo ""
-    read -p "Please input password (Default: $default_password):" PASSWORD
+    read -p "Please input password (Default: $default_password): " PASSWORD
     [ -z "$PASSWORD" ] && PASSWORD=$default_password
 
     while true
     do
     echo ""
-    read -p "Please input port number (Default: $default_port):" PORT
+    read -p "Please input port number (Default: $default_port): " PORT
     [ -z "$PORT" ] && PORT=$default_port
     expr $PORT + 0 &>/dev/null
     if [ $? -eq 0 ]; then
@@ -76,7 +98,7 @@ function add_service() {
     echo "3: aes-256-cfb"
     echo "4: chacha20"
     echo "5: chacha20-ietf"
-    read -p "Enter your choice (1, 2, 3, 4 or 5. default [4]) " ENCRYPT
+    read -p "Enter your choice (1, 2, 3, 4 or 5. default [3]) " ENCRYPT
     case "$ENCRYPT" in
         1)
             ENCRYPT="rc4-md5"
@@ -94,54 +116,74 @@ function add_service() {
             ENCRYPT="chacha20-ietf"
             ;;
         *)
-            ENCRYPT="chacha20"
+            ENCRYPT="aes-256-cfb"
             ;;
     esac
 
-    LOCALIP="0.0.0.0"
+    shadowsocks_config_file="$conf_file_path/conf.$PORT.json"
 
-    add_firewall ${PORT}
+    if [ ! -s "$shadowsocks_config_file" ]; then
+        LOCALIP="0.0.0.0"
 
-    nohup /usr/bin/ss-server -s $LOCALIP -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 &
-    echo "nohup /usr/bin/ss-server -s $LOCALIP -p $PORT -k $PASSWORD -m $ENCRYPT >> /var/log/shadowsocks.log > /dev/null 2>&1 & " >> /etc/rc.local
+        config_shadowsocks $PORT $PASSWORD $ENCRYPT $shadowsocks_config_file
+        add_firewall ${PORT}
 
-    echo ""
-    echo -e "Your public IP is\t\033[32m$LOCALIP\033[0m"
-    echo -e "Your Server Port is\t\033[32m$PORT\033[0m"
-    echo -e "Your Password is\t\033[32m$PASSWORD\033[0m"
-    echo -e "Your Encryption Method\t\033[32m$ENCRYPT\033[0m"
-    echo ""
+        # start up
+        nohup /usr/bin/ss-server -c $shadowsocks_config_file > /dev/null 2>&1 &
+
+        echo ""
+        # echo -e "Your public IP is\t\033[32m$LOCALIP\033[0m"
+        echo -e "Your Server Port is\t\033[32m$PORT\033[0m"
+        echo -e "Your Password is\t\033[32m$PASSWORD\033[0m"
+        echo -e "Your Encryption Method\t\033[32m$ENCRYPT\033[0m"
+        echo ""
+        echo -e "\033[42;37m SUCCESS \033[0m Service added."
+        echo ""
+    else
+        echo ""
+        echo -e "\033[41;37m ERROR \033[0m Port $PORT already in use."
+        add_service
+    fi
 }
 
 function add_firewall() {
     PORT=$1
 
-    echo "Only support iptables."
-    echo "Start setting..."
-    /etc/init.d/iptables status > /dev/null 2>&1
-    if [ $? -eq 0 ]; then
-        iptables -L -n | grep '$PORT' | grep 'ACCEPT' > /dev/null 2>&1
-        if [ $? -ne 0 ]; then
+    echo ""
+    echo "Configuring iptables..."
+
+    # check iptables is installed
+    iptables_installed=`rpm -qa | grep iptables | wc -l`
+    if [ $iptables_installed -ne 0 ]; then
+        # check port is in use
+        is_port_in_use=`iptables -nL | grep "\:$PORT\b" | wc -l`
+        if [ $is_port_in_use -eq 0 ]; then
             iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
             iptables -I INPUT -p udp --dport $PORT -j ACCEPT
-            service iptables save
-            service iptables restart
+            service iptables save > /dev/null
+
+            # check is iptable start
+            is_iptables_started=`iptables -vL | grep "\b:\b" | awk '{split($NF,a,":");print a[2]}' | wc -l`
+            if [ $is_iptables_started -ne 0 ]; then
+                service iptables restart > /dev/null
+            else
+                echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown, please manually set it if necessary."
+            fi
         else
             echo "Port $PORT has been set up."
         fi
     else
-        echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown or not installed, please manually set it if necessary."
+        echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed, please manually set it if necessary."
     fi
-    echo "Firewall setup completed..."
+
+    echo "Iptables setup completed..."
 }
 
-# Config shadowsocks
 function config_shadowsocks() {
-	# https://github.com/91yun/shadowsocks_install/blob/master/shadowsocks-libev.sh
 	# port,password,encryption-method
-    mkdir /home/conf/shadowsocks -p
+    mkdir $conf_file_path -p
 
-    cat > /home/conf/shadowsocks/config.json<<-EOF
+    cat > ${4}<<-EOF
 {
     "server":"0.0.0.0",
     "server_port":${1},
@@ -154,32 +196,76 @@ function config_shadowsocks() {
 EOF
 }
 
-function install_shadowsocks() {
-    if sys_version 6; then
-        wget -P /etc/yum.repos.d/ ${epel_centos6}
-    elif sys_version 7; then
-        yum install epel-release -y
-        yum install gcc gettext autoconf libtool automake make pcre-devel asciidoc xmlto c-ares-devel libev-devel libsodium-devel mbedtls-devel -y
-        wget -P /etc/yum.repos.d/ ${epel_centos7}
-    fi
+function remove_service() {
+    default_del_port="0"
 
-    yum install shadowsocks-libev -y
-
+    while true
+    do
     echo ""
-    start
+    read -p "Please input port number you want to remove: " DELPORT
+    [ -z "$DELPORT" ] && DELPORT=$default_del_port
+    expr $DELPORT + 0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        if [ $DELPORT -ge 1 ] && [ $DELPORT -le 65535 ]; then
+            break
+        else
+            echo "Input error! Please input correct numbers."
+        fi
+    else
+        echo "Input error! Please input correct numbers."
+    fi
+    done
+
+    del_port_file="$conf_file_path/conf.$DELPORT.json"
+
+    if [ ! -s $del_port_file ]; then
+        echo "$DELPORT not used."
+        echo ""
+        remove_service
+    else
+        echo "Killing process..."
+        delpid=`ps aux | grep "$del_port_file" | grep -v "grep" | awk '{print $2}'`
+        if [ ! $delpid ]; then
+            echo "Shadowsocks process list:"
+            ps aux | grep "ss-server" | grep -v "grep"
+            echo ""
+            echo "Related processes not found ($del_port_file)."
+        else 
+            if ps -p $delpid > /dev/null ; then
+                kill -9 $delpid
+            fi
+        fi
+
+        echo "Removing config file..."
+        rm -rf $del_port_file
+        echo "Configuring firewall..."
+        iptables_installed=`rpm -qa | grep iptables | wc -l`
+        if [ $iptables_installed -ne 0 ]; then
+            iptables -D INPUT -p tcp --dport $DELPORT -j ACCEPT
+            iptables -D INPUT -p udp --dport $DELPORT -j ACCEPT
+            service iptables save > /dev/null
+        else
+            echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed."
+        fi
+
+        echo -e "\033[42;37m SUCCESS \033[0m Service removed, all done."
+        echo ""
+    fi
 }
 
 function start() {
     echo ""
-    echo "Which do you want to? Input the number and press enter. (Ctrl + C to exit)"
+    echo "Which do you want to do?"
     echo "1. Install"
     echo "2. Add port"
-    read num
+    echo "3. Remove port"
+    read -p "Input the number and press enter. (Press any other key to exit) " num
 
     case "$num" in
-    [1] ) (install_shadowsocks);;
-    [2] ) (add_service);;
-    *) echo "";;
+        [1] ) (install_shadowsocks);;
+        [2] ) (add_service);;
+        [3] ) (remove_service);;
+        *) echo "Bye bye~";;
     esac
 }
 
