@@ -1,4 +1,6 @@
 # shadowsocks-libev
+CentOS
+
 ```bash
 wget --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks-libev.sh
 sh shadowsocks-libev.sh
