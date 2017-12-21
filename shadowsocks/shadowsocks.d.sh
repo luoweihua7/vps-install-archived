@@ -1,24 +1,36 @@
 #!/bin/sh
+### BEGIN INIT INFO
+# Provides: shadowsocks
+# Required-Start: $remote_fs $network
+# Required-Stop: $remote_fs $network
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: shadowsocks-libev
+### END INIT INFO
+
+conf_file_path="/home/conf/shadowsocks"
 
 start() {
-  if [ -d /home/conf/shadowsocks/ ]; then
+  if [ -d $conf_file_path ]; then
     echo "Launching shadowsocks initialization scripts"
-    for f in /home/conf/shadowsocks/* ; do
+    for f in $conf_file_path/* ; do
       pid=`ps aux | grep "$f" | grep -v "grep" | awk '{print $2}'`
       if [ ! $pid ]; then
         nohup /usr/bin/ss-server -c $f > /dev/null 2>&1 &
+      else
+        echo "Service already started. ($f)"
       fi
     done
   else
-    echo "error: /home/conf/shadowsocks/ directory not found" >&2
+    echo "error: $conf_file_path directory not found" >&2
     exit 1
   fi
 }
 
 stop() {
-  if [ -d /home/conf/shadowsocks/ ]; then
+  if [ -d $conf_file_path ]; then
     echo "Launching shadowsocks termination scripts"
-    for f in /home/conf/shadowsocks/* ; do
+    for f in $conf_file_path/* ; do
       pid=`ps aux | grep "$f" | grep -v "grep" | awk '{print $2}'`
       if [ ! $pid ]; then
         echo "Related processes not found ($f)."
@@ -29,7 +41,7 @@ stop() {
       fi
     done
   else
-    echo "error: /home/conf/shadowsocks/ directory not found" >&2
+    echo "error: $conf_file_path directory not found" >&2
     exit 1
   fi
 }
