@@ -177,28 +177,48 @@ function add_firewall() {
     echo ""
     echo "Configuring iptables..."
 
-    # check iptables is installed
-    iptables_installed=`rpm -qa | grep iptables | wc -l`
-    if [ $iptables_installed -ne 0 ]; then
-        # check port is in use
-        is_port_in_use=`iptables -nL | grep "\:$PORT\b" | wc -l`
-        if [ $is_port_in_use -eq 0 ]; then
-            iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
-            iptables -I INPUT -p udp --dport $PORT -j ACCEPT
-            service iptables save > /dev/null
+    echo ""
+    if sys_version 6; then
+        # check iptables is installed
+        iptables_installed=`rpm -qa | grep iptables | wc -l`
+        if [ $iptables_installed -ne 0 ]; then
+            # check port is in use
+            is_port_in_use=`iptables -nL | grep "\:$PORT\b" | wc -l`
+            if [ $is_port_in_use -eq 0 ]; then
+                iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
+                iptables -I INPUT -p udp --dport $PORT -j ACCEPT
+                service iptables save > /dev/null
 
-            # check is iptable start
-            is_iptables_started=`iptables -vL | grep "\b:\b" | awk '{split($NF,a,":");print a[2]}' | wc -l`
-            if [ $is_iptables_started -ne 0 ]; then
-                service iptables restart > /dev/null
+                # check is iptable start
+                is_iptables_started=`iptables -vL | grep "\b:\b" | awk '{split($NF,a,":");print a[2]}' | wc -l`
+                if [ $is_iptables_started -ne 0 ]; then
+                    service iptables restart > /dev/null
+                else
+                    echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown, please manually set it if necessary."
+                fi
             else
-                echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown, please manually set it if necessary."
+                echo "Port $PORT has been set up."
             fi
         else
-            echo "Port $PORT has been set up."
+            echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed, please manually set it if necessary."
         fi
-    else
-        echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed, please manually set it if necessary."
+    elif sys_version 7; then
+        systemctl status firewalld > /dev/null 2>&1
+        if [ $? -eq 0 ];then
+            firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
+            firewall-cmd --permanent --zone=public --add-port=$PORT/udp
+            firewall-cmd --reload
+        else
+            echo "Firewalld looks like not running, try to start..."
+            systemctl start firewalld
+            if [ $? -eq 0 ];then
+                firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
+                firewall-cmd --permanent --zone=public --add-port=$PORT/udp
+                firewall-cmd --reload
+            else
+                echo -e "\033[41;37m WARNING \033[0m Try to start firewalld failed. please manually set it if necessary."
+            fi
+        fi
     fi
 
     echo "Iptables setup completed..."
