@@ -44,6 +44,29 @@ function random(){
     echo $(($num%$max+$min))  
 }
 
+progressfilter ()
+{
+    local flag=false c count cr=$'\r' nl=$'\n'
+    while IFS='' read -d '' -rn 1 c
+    do
+        if $flag
+        then
+            printf '%c' "$c"
+        else
+            if [[ $c != $cr && $c != $nl ]]
+            then
+                count=0
+            else
+                ((count++))
+                if ((count > 1))
+                then
+                    flag=true
+                fi
+            fi
+        fi
+    done
+}
+
 function install_shadowsocks() {
     if sys_version 6; then
         wget -P /etc/yum.repos.d/ ${epel_centos6}
@@ -55,8 +78,10 @@ function install_shadowsocks() {
 
     yum install shadowsocks-libev -y
 
-    wget --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh -O /etc/init.d/shadowsocks
+    echo "Downloading shadowsocks startup script."
+    wget --no-check-certificate --progress=bar:force https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh -O /etc/init.d/shadowsocks 2>&1 | progressfilter
     chmod 755 /etc/init.d/shadowsocks
+    echo "Configuring startup script."
     chkconfig --add shadowsocks
     chkconfig shadowsocks on
 
@@ -265,7 +290,7 @@ function start() {
         [1] ) (install_shadowsocks);;
         [2] ) (add_service);;
         [3] ) (remove_service);;
-        *) echo "Bye bye~";;
+        *) echo "Bye~~~";;
     esac
 }
 

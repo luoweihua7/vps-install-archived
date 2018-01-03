@@ -18,7 +18,30 @@ function sys_version(){
         return 0
     else
         return 1
-    fi        
+    fi
+}
+
+progressfilter ()
+{
+    local flag=false c count cr=$'\r' nl=$'\n'
+    while IFS='' read -d '' -rn 1 c
+    do
+        if $flag
+        then
+            printf '%c' "$c"
+        else
+            if [[ $c != $cr && $c != $nl ]]
+            then
+                count=0
+            else
+                ((count++))
+                if ((count > 1))
+                then
+                    flag=true
+                fi
+            fi
+        fi
+    done
 }
 
 function install_aria2c() {
@@ -26,8 +49,10 @@ function install_aria2c() {
     mkdir /home/downloads -p
     mkdir /home/www -p
 
-    wget --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz
+    echo "Downloading file..."
+    wget --no-check-certificate --progress=bar:force https://github.com/luoweihua7/vps-install/raw/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz 2>&1 | progressfilter
     echo "Unzip file..."
+    # aria2c file download from https://github.com/q3aql/aria2-static-builds
     tar zxf /tmp/aria2.tar.gz -C /home/conf/
     rm -rf /tmp/aria2.tar.gz
 
@@ -52,7 +77,39 @@ function install_aria2c() {
 
     echo ""
     echo "Setup AriaNg..."
+    install_ariang
 
+    echo ""
+    echo "Config nginx folder..."
+    mv /home/conf/aria2/nginx.*.conf /etc/nginx/default.d/
+    service nginx restart
+
+    echo ""
+    echo "All done!"
+}
+
+function install_ariang() {
+    echo ""
+    echo "Which type do you want to install? "
+    echo "1. release"
+    echo "2. master"
+    read -p "Please enter your choice (1, 2. default [1]): " INSTALLTYPE
+    [ -z "$INSTALLTYPE" ] && INSTALLTYPE="1"
+
+    case "$INSTALLTYPE" in
+        1)
+            install_ariang_release
+            ;;
+        2)
+            install_ariang_master
+            ;;
+        *)
+            install_ariang
+            ;;
+    esac
+}
+
+function install_ariang_master() {
     git clone https://github.com/mayswind/AriaNg.git /tmp/AriaNg
     npm i -g gulp bower
     cd /tmp/AriaNg
@@ -65,13 +122,20 @@ function install_aria2c() {
     mv /tmp/AriaNg/dist/* /home/www/aria2 -f
     cd /home
     rm -rf /tmp/AriaNg/
+    echo "AriaNg installed."
+}
 
-    echo ""
-    echo "Config nginx folder..."
-    mv /home/conf/aria2/nginx.*.conf /etc/nginx/default.d/
-    service nginx restart
-
-    echo "All done!"
+function install_ariang_release() {
+    echo "Checking last version..."
+    aria_ng_version=`wget -qO- https://github.com/mayswind/AriaNg/releases | grep css-truncate-target | head -n 1 | awk '{print $2}' | sed 's/class=\"css-truncate-target\">//g' | sed 's/<\/span>//g'`
+    echo "Last version: ${aria_ng_version}"
+    echo "Downloading file..."
+    wget --no-check-certificate --progress=bar:force https://github.com/mayswind/AriaNg/releases/download/${aria_ng_version}/aria-ng-${aria_ng_version}.zip -O /tmp/aria-ng-${aria_ng_version}.zip 2>&1 | progressfilter
+    echo "Unzip file..."
+    unzip -u -q /tmp/aria-ng-${aria_ng_version}.zip -d /home/www/aria2
+    echo "Clean up."
+    rm -rf /tmp/aria-ng-${aria_ng_version}.zip
+    echo "AriaNg installed."
 }
 
 function uninstall_aria2c() {
@@ -98,15 +162,17 @@ function uninstall_aria2c() {
 
 function start() {
     echo ""
-    echo "Which do you want to? Input the number and press enter. (Press other key to exit)"
-    echo "1. Install"
-    echo "2. Uninstall"
-    read num
+    echo "Which do you want to?"
+    echo "1. Install aria2c [Include Web UI]"
+    echo "2. Uninstall aria2c"
+    echo "3. Install AriaNg Web UI"
+    read -p "Please input the number and press enter.  (Press other key to exit): " num
 
     case "$num" in
     [1] ) (install_aria2c);;
     [2] ) (uninstall_aria2c);;
-    *) echo "";;
+    [3] ) (install_ariang);;
+    *) echo "Bye~~~";;
     esac
 }
 
