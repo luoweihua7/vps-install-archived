@@ -110,6 +110,7 @@ function install_ariang() {
 }
 
 function install_ariang_master() {
+    yum install -y git -q
     git clone https://github.com/mayswind/AriaNg.git /tmp/AriaNg
     npm i -g gulp bower
     cd /tmp/AriaNg
@@ -126,6 +127,7 @@ function install_ariang_master() {
 }
 
 function install_ariang_release() {
+    yum install -y unzip -q
     echo "Checking last version..."
     aria_ng_version=`wget -qO- https://github.com/mayswind/AriaNg/releases | grep css-truncate-target | head -n 1 | awk '{print $2}' | sed 's/class=\"css-truncate-target\">//g' | sed 's/<\/span>//g'`
     echo "Last version: ${aria_ng_version}"
