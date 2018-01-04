@@ -94,10 +94,6 @@ function add_service() {
     default_password=`fun_randstr`
     default_port=`random 10000 60000`
 
-    echo ""
-    read -p "Please input password (Default: $default_password): " PASSWORD
-    [ -z "$PASSWORD" ] && PASSWORD=$default_password
-
     while true
     do
     echo ""
@@ -114,6 +110,10 @@ function add_service() {
         echo "Input error! Please input correct numbers."
     fi
     done
+
+    echo ""
+    read -p "Please input password (Default: $default_password): " PASSWORD
+    [ -z "$PASSWORD" ] && PASSWORD=$default_password
 
     # set shadowsocks encrypt mode
     echo ""
@@ -174,10 +174,8 @@ function add_service() {
 function add_firewall() {
     PORT=$1
 
-    echo ""
     echo "Configuring firewall..."
 
-    echo ""
     if sys_version 6; then
         # check iptables is installed
         iptables_installed=`rpm -qa | grep iptables | wc -l`
@@ -244,6 +242,9 @@ function config_shadowsocks() {
     "method":"${3}"
 }
 EOF
+
+    echo ""
+    echo "Shadowsocks config file created."
 }
 
 function remove_service() {
