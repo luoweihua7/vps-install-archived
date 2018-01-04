@@ -175,7 +175,7 @@ function add_firewall() {
     PORT=$1
 
     echo ""
-    echo "Configuring iptables..."
+    echo "Configuring firewall..."
 
     echo ""
     if sys_version 6; then
@@ -203,25 +203,30 @@ function add_firewall() {
             echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed, please manually set it if necessary."
         fi
     elif sys_version 7; then
-        systemctl status firewalld > /dev/null 2>&1
-        if [ $? -eq 0 ];then
-            firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
-            firewall-cmd --permanent --zone=public --add-port=$PORT/udp
-            firewall-cmd --reload
-        else
-            echo "Firewalld looks like not running, try to start..."
-            systemctl start firewalld
+        firewalld_installed=`rpm -qa | grep firewalld | wc -l`
+        if [ $firewalld_installed -ne 0 ]; then
+            systemctl status firewalld > /dev/null 2>&1
             if [ $? -eq 0 ];then
-                firewall-cmd --permanent --zone=public --add-port=$PORT/tcp
-                firewall-cmd --permanent --zone=public --add-port=$PORT/udp
-                firewall-cmd --reload
+                firewall-cmd --permanent --zone=public --add-port=$PORT/tcp -q
+                firewall-cmd --permanent --zone=public --add-port=$PORT/udp -q
+                firewall-cmd --reload -q
             else
-                echo -e "\033[41;37m WARNING \033[0m Try to start firewalld failed. please manually set it if necessary."
+                echo "Firewalld looks like not running, try to start..."
+                systemctl start firewalld -q
+                if [ $? -eq 0 ];then
+                    firewall-cmd --permanent --zone=public --add-port=$PORT/tcp -q
+                    firewall-cmd --permanent --zone=public --add-port=$PORT/udp -q
+                    firewall-cmd --reload -q
+                else
+                    echo -e "\033[41;37m WARNING \033[0m Try to start firewalld failed. please manually set it if necessary."
+                fi
             fi
+        else
+            echo -e "\033[41;37m WARNING \033[0m Firewalld looks like not installed, please manually set it if necessary."
         fi
     fi
 
-    echo "Iptables setup completed..."
+    echo "Firewall setup completed..."
 }
 
 function config_shadowsocks() {
@@ -284,13 +289,37 @@ function remove_service() {
         echo "Removing config file..."
         rm -rf $del_port_file
         echo "Configuring firewall..."
-        iptables_installed=`rpm -qa | grep iptables | wc -l`
-        if [ $iptables_installed -ne 0 ]; then
-            iptables -D INPUT -p tcp --dport $DELPORT -j ACCEPT
-            iptables -D INPUT -p udp --dport $DELPORT -j ACCEPT
-            service iptables save > /dev/null
-        else
-            echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed."
+        if sys_version 6; then
+            iptables_installed=`rpm -qa | grep iptables | wc -l`
+            if [ $iptables_installed -ne 0 ]; then
+                iptables -D INPUT -p tcp --dport $DELPORT -j ACCEPT
+                iptables -D INPUT -p udp --dport $DELPORT -j ACCEPT
+                service iptables save > /dev/null
+            else
+                echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed."
+            fi
+        elif sys_version 7; then
+            firewalld_installed=`rpm -qa | grep firewalld | wc -l`
+            if [ $firewalld_installed -ne 0 ]; then
+                systemctl status firewalld > /dev/null 2>&1
+                if [ $? -eq 0 ];then
+                    firewall-cmd --permanent --zone=public --remove-port=$DELPORT/tcp -q
+                    firewall-cmd --permanent --zone=public --remove-port=$DELPORT/udp -q
+                    firewall-cmd --reload -q
+                else
+                    # start firewalld to remove port
+                    systemctl start firewalld -q
+                    if [ $? -eq 0 ];then
+                        firewall-cmd --permanent --zone=public --remove-port=$DELPORT/tcp -q
+                        firewall-cmd --permanent --zone=public --remove-port=$DELPORT/udp -q
+                        firewall-cmd --reload -q
+                    fi
+                    # reset firewall status
+                    systemctl stop firewalld -q
+                fi
+            else
+                echo -e "\033[41;37m WARNING \033[0m Firewalld looks like not installed."
+            fi
         fi
 
         echo -e "\033[42;37m SUCCESS \033[0m Service removed, all done."
