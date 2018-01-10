@@ -67,7 +67,21 @@ progressfilter ()
     done
 }
 
-function install_shadowsocks() {
+function install_shadowsocks(){
+    echo ""
+    echo "Which shadowsocks version do you want to install?"
+    echo "1. Newest rpm version"
+    echo "2. Old github version"
+    read -p "Input the number and press enter. (Press any other key to exit) " num
+
+    case "$num" in
+        [1] ) (install_shadowsocks_rpm);;
+        [2] ) (install_shadowsocks_old_version);;
+        *) echo "Bye~~~";;
+    esac
+}
+
+function install_shadowsocks_rpm() {
     if sys_version 6; then
         wget -P /etc/yum.repos.d/ ${epel_centos6}
     elif sys_version 7; then
@@ -87,6 +101,28 @@ function install_shadowsocks() {
 
     echo ""
     echo -e "\033[42;37m SUCCESS \033[0m Shadowsocks installed."
+    start
+}
+
+function install_shadowsocks_old_version() {
+    # read -p "Which version do you want to install? (Default: 2.5.5)" VERSION
+    # [ -z "$VERSION" ] && VERSION="2.5.5"
+
+    echo "Installing shadowsocks-libev 2.5.5"
+    VERSION="2.5.5
+    yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
+    yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
+
+    wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v$VERSION.tar.gz -O shadowsocks-libev-$VERSION.tar.gz
+    tar -zxf shadowsocks-libev-$VERSION.tar.gz
+    cd shadowsocks-libev-$VERSION
+    ./configure
+    make && make install
+
+    rm -rf shadowsocks-libev-$VERSION*
+
+    echo "shadowsocks installed"
+    echo ""
     start
 }
 
