@@ -44,7 +44,7 @@ function random(){
     echo $(($num%$max+$min))  
 }
 
-progressfilter ()
+function progressfilter ()
 {
     local flag=false c count cr=$'\r' nl=$'\n'
     while IFS='' read -d '' -rn 1 c
@@ -92,12 +92,7 @@ function install_shadowsocks_rpm() {
 
     yum install shadowsocks-libev -y
 
-    echo "Downloading shadowsocks startup script."
-    wget --no-check-certificate --progress=bar:force https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh -O /etc/init.d/shadowsocks 2>&1 | progressfilter
-    chmod 755 /etc/init.d/shadowsocks
-    echo "Configuring startup script."
-    chkconfig --add shadowsocks
-    chkconfig shadowsocks on
+    install_shadowsocks_script
 
     echo ""
     echo -e "\033[42;37m SUCCESS \033[0m Shadowsocks installed."
@@ -109,21 +104,35 @@ function install_shadowsocks_old_version() {
     # [ -z "$VERSION" ] && VERSION="2.5.5"
 
     echo "Installing shadowsocks-libev 2.5.5"
-    VERSION="2.5.5
+    VERSION="2.5.5"
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
     yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
-    wget --no-check-certificate https://github.com/shadowsocks/shadowsocks-libev/archive/v$VERSION.tar.gz -O shadowsocks-libev-$VERSION.tar.gz
+    wget --no-check-certificate --progress=bar:force https://github.com/shadowsocks/shadowsocks-libev/archive/v$VERSION.tar.gz -O shadowsocks-libev-$VERSION.tar.gz 2>&1 | progressfilter
     tar -zxf shadowsocks-libev-$VERSION.tar.gz
     cd shadowsocks-libev-$VERSION
-    ./configure
+    ./configure --prefix=/usr
     make && make install
 
+    cd ..
     rm -rf shadowsocks-libev-$VERSION*
 
-    echo "shadowsocks installed"
+    install_shadowsocks_script
+
     echo ""
+    echo -e "\033[42;37m SUCCESS \033[0m Shadowsocks installed."
     start
+}
+
+function install_shadowsocks_script() {
+    echo ""
+    echo "Downloading shadowsocks startup script."
+    wget --no-check-certificate --progress=bar:force https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh -O /etc/init.d/shadowsocks 2>&1 | progressfilter
+    chmod 755 /etc/init.d/shadowsocks
+    echo "Configuring startup script."
+    chkconfig --add shadowsocks
+    chkconfig shadowsocks on
+    echo "Startup script setup completed."
 }
 
 function add_service() {
