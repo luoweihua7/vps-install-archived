@@ -129,14 +129,14 @@ function install_ariang_master() {
 function install_ariang_release() {
     yum install -y unzip -q
     echo "Checking last version..."
-    aria_ng_version=`wget -qO- https://github.com/mayswind/AriaNg/releases | grep css-truncate-target | head -n 1 | awk '{print $2}' | sed 's/class=\"css-truncate-target\">//g' | sed 's/<\/span>//g'`
-    echo "Last version: ${aria_ng_version}"
+    aria_ng_path=`wget -qO- https://github.com/mayswind/AriaNg/releases | grep 'releases/download/' | head -n 1 | awk '{print $2}' | sed 's/href=\"//g' | sed 's/\"//g'`
+    echo "Last version: https://github.com${aria_ng_path}"
     echo "Downloading file..."
-    wget --no-check-certificate --progress=bar:force https://github.com/mayswind/AriaNg/releases/download/${aria_ng_version}/aria-ng-${aria_ng_version}.zip -O /tmp/aria-ng-${aria_ng_version}.zip 2>&1 | progressfilter
+    wget --no-check-certificate --progress=bar:force https://github.com${aria_ng_path} -O /tmp/AriaNg.zip 2>&1 | progressfilter
     echo "Unzip file..."
-    unzip -u -q /tmp/aria-ng-${aria_ng_version}.zip -d /home/www/aria2
+    unzip -u -q /tmp/AriaNg.zip -d /home/www/aria2
     echo "Clean up."
-    rm -rf /tmp/aria-ng-${aria_ng_version}.zip
+    rm -rf /tmp/AriaNg.zip
     echo "AriaNg installed."
 }
 
