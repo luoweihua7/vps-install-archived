@@ -81,7 +81,7 @@ function install_aria2c() {
 
     echo ""
     echo "Config nginx folder..."
-    mv /home/conf/aria2/nginx.*.conf /etc/nginx/default.d/
+    mv /home/conf/aria2/*.conf /etc/nginx/conf.d/
     service nginx restart
 
     echo ""
@@ -156,7 +156,9 @@ function uninstall_aria2c() {
     rm -rf /usr/local/bin/aria2c
     rm -rf /home/conf/aria2
 	rm -rf /home/www/aria2
-    rm -rf /etc/nginx/default.d/nginx.*.conf
+    rm -rf /etc/nginx/conf.d/dl.*.conf
+
+    service nginx restart
 
     echo ""
     echo "All aria2 files removed."
