@@ -58,18 +58,18 @@ function install_aria2c() {
 
     echo "Moving aria2c to correct directory"
     mv /home/conf/aria2/aria2c /usr/local/bin
-    mv /home/conf/aria2/aria2c.sh /etc/init.d/aria2c
-    chmod 755 /etc/init.d/aria2c
+    mv /home/conf/aria2/aria2.sh /etc/init.d/aria2
+    chmod 755 /etc/init.d/aria2
 
-    chkconfig --add aria2c
-    chkconfig aria2c on
+    chkconfig --add aria2
+    chkconfig aria2 on
 
     if sys_version 6; then
-        service aria2c start
+        service aria2 start
     elif sys_version 7; then
         systemctl daemon-reload
-        systemctl enable aria2c
-        systemctl start aria2c
+        systemctl enable aria2
+        systemctl start aria2
     fi
 
     echo ""
