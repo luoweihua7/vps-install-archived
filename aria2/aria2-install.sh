@@ -81,7 +81,7 @@ function install_aria2c() {
 
     echo ""
     echo "Config nginx folder..."
-    mv /home/conf/aria2/*.conf /etc/nginx/conf.d/
+    mv /home/conf/aria2/dl.*.conf /etc/nginx/conf.d/
     service nginx restart
 
     echo ""
