@@ -144,12 +144,12 @@ function uninstall_aria2c() {
     echo "Removing files..."
 
     if sys_version 6; then
-        service aria2c stop
-        rm -rf /etc/init.d/aria2c
+        service aria2 stop
+        rm -rf /etc/init.d/aria2
     elif sys_version 7; then
-        systemctl stop aria2c.service
-        systemctl disable aria2c.service
-        rm -rf /etc/systemd/system/aria2c.service
+        systemctl stop aria2.service
+        systemctl disable aria2.service
+        rm -rf /etc/systemd/system/aria2.service
         systemctl daemon-reload
     fi
 
