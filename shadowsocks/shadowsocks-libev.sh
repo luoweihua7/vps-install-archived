@@ -199,7 +199,7 @@ function add_service() {
         add_firewall ${PORT}
 
         # start up
-        nohup /usr/bin/ss-server -c $shadowsocks_config_file > /dev/null 2>&1 &
+        nohup /usr/bin/ss-server -u -c $shadowsocks_config_file > /dev/null 2>&1 &
 
         echo ""
         # echo -e "Your public IP is\t\033[32m$LOCALIP\033[0m"
