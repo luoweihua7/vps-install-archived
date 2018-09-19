@@ -16,7 +16,7 @@ start() {
     for f in $conf_file_path/* ; do
       pid=`ps aux | grep "$f" | grep -v "grep" | awk '{print $2}'`
       if [ ! $pid ]; then
-        nohup /usr/bin/ss-server -c $f > /dev/null 2>&1 &
+        nohup /usr/bin/ss-server -u -c $f > /dev/null 2>&1 &
       else
         echo "Service already started. ($f)"
       fi
