@@ -7,7 +7,7 @@ wget --no-check-certificate https://github.com/luoweihua7/vps-install/raw/master
 sh shadowsocks-libev.sh
 ```
 按照提示操作即可。
-如需添加多个用户，可重复执行命令按照提示添加，会自动创建多个配置。
+如需添加多个用户，可重复执行命令按照提示添加，会自动创建多个配置。<br>
 通过 `ps aux | grep ss-server` 搜索可以看到对应的进程
 <br>
 <br>
