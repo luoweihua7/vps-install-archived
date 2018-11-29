@@ -1,3 +1,3 @@
 # VPS Configure
 
-Personal, DO NOT use!!!
+Personal, DO NOT USE!!!
