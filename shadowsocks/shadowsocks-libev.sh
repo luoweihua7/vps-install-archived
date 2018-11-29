@@ -70,6 +70,13 @@ check_kernel_version(){
         return 1
     fi
 }
+check_kernel_headers(){
+    if rpm -qa | grep -q headers-$(uname -r); then
+        return 0
+    else
+        return 1
+    fi
+}
 
 # copy from teddysun
 download() {
@@ -406,7 +413,7 @@ config_shadowsocks() {
 	# port,password,encryption-method
     mkdir $conf_file_path -p
 
-    if check_kernel_version; then
+    if check_kernel_version && check_kernel_headers; then
         fast_open="true"
     else
         fast_open="false"
