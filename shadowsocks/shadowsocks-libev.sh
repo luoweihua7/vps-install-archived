@@ -6,6 +6,19 @@ conf_file_path="/home/conf/shadowsocks"
 epel_centos6="https://copr.fedorainfracloud.org/coprs/librehat/shadowsocks/repo/epel-6/librehat-shadowsocks-epel-6.repo"
 epel_centos7="https://copr.fedorainfracloud.org/coprs/librehat/shadowsocks/repo/epel-7/librehat-shadowsocks-epel-7.repo"
 
+libsodium_file="libsodium-1.0.16"
+libsodium_url="https://github.com/jedisct1/libsodium/releases/download/1.0.16/${libsodium_file}.tar.gz"
+mbedtls_file="mbedtls-2.13.0"
+mbedtls_url="https://tls.mbed.org/download/${mbedtls_file}-gpl.tgz"
+cur_dir=`pwd`
+old_version="2.5.5"
+
+# Colors (copy from teddysun)
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+plain='\033[0m'
+
 # Get version
 function get_os_version(){
     if [[ -s /etc/redhat-release ]];then
@@ -44,39 +57,102 @@ function random(){
     echo $(($num%$max+$min))  
 }
 
-function progressfilter ()
-{
-    local flag=false c count cr=$'\r' nl=$'\n'
-    while IFS='' read -d '' -rn 1 c
-    do
-        if $flag
-        then
-            printf '%c' "$c"
+# Disable selinux
+disable_selinux(){
+    if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then
+        sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+        setenforce 0
+    fi
+}
+
+# check kernel version for fast open
+check_kernel_version(){
+    local kernel_version=$(uname -r | cut -d- -f1)
+    if version_gt ${kernel_version} 3.7.0; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# function copy from teddysun
+download() {
+    local filename=${1}
+    local cur_dir=`pwd`
+    [ ! "$(command -v wget)" ] && yum install -y -q wget
+    if [ -s ${filename} ]; then
+        echo -e "[${green}Info${plain}] ${filename} already exists."
+    else
+        echo -e "[${green}Info${plain}] ${filename} downloading now, Please wait..."
+        wget --no-check-certificate -cq -t3 ${2} -O ${1}
+        if [ $? -eq 0 ]; then
+            echo -e "[${green}Info${plain}] ${filename} download completed..."
         else
-            if [[ $c != $cr && $c != $nl ]]
-            then
-                count=0
-            else
-                ((count++))
-                if ((count > 1))
-                then
-                    flag=true
-                fi
-            fi
+            echo -e "[${red}Error${plain}] Failed to download ${filename}, please download it to ${cur_dir} directory manually and try again."
+            exit 1
         fi
-    done
+    fi
+}
+
+# function copy from teddysun
+install_libsodium() {
+    if [ ! -f /usr/lib/libsodium.a ]; then
+        cd ${cur_dir}
+        download "${libsodium_file}.tar.gz" "${libsodium_url}"
+        tar zxf ${libsodium_file}.tar.gz
+        cd ${libsodium_file}
+        ./configure --prefix=/usr && make && make install
+        if [ $? -ne 0 ]; then
+            echo -e "[${red}Error${plain}] ${libsodium_file} install failed."
+            exit 1
+        else
+            echo -e "[${green}Info${plain}] ${libsodium_file} installed."
+        fi
+
+        cd ${cur_dir}
+        rm -rf ${libsodium_file}*
+    else
+        echo -e "[${green}Info${plain}] ${libsodium_file} already installed."
+    fi
+}
+# function copy from teddysun
+install_mbedtls() {
+    if [ ! -f /usr/lib/libmbedtls.a ]; then
+        cd ${cur_dir}
+        download "${mbedtls_file}-gpl.tgz" "${mbedtls_url}"
+        tar xf ${mbedtls_file}-gpl.tgz
+        cd ${mbedtls_file}
+        make SHARED=1 CFLAGS=-fPIC
+        make DESTDIR=/usr install
+        if [ $? -ne 0 ]; then
+            echo -e "[${red}Error${plain}] ${mbedtls_file} install failed."
+            exit 1
+        else
+            echo -e "[${green}Info${plain}] ${mbedtls_file} installed."
+        fi
+
+        cd ${cur_dir}
+        rm -rf ${mbedtls_file}*
+    else
+        echo -e "[${green}Info${plain}] ${mbedtls_file} already installed."
+    fi
 }
 
 function install_shadowsocks(){
+    disable_selinux
+
     echo ""
-    echo "Which shadowsocks version do you want to install?"
-    echo "1. Newest rpm version"
-    echo "2. Old github version"
-    read -p "Input the number and press enter. (Press any other key to exit) " num
+    echo "Which shadowsocks-libev version do you want to install? (If install failure, try another)"
+    echo "1. Latest github version"
+    echo "2. Newest rpm version"
+    echo "3. Old github version (stable v2.5.5)"
+    read -p "Input the number and press enter. (Default: [1], press any other key to exit) " num
+    [ -z ${num} ] && num="1"
 
     case "$num" in
-        [1] ) (install_shadowsocks_rpm);;
-        [2] ) (install_shadowsocks_old_version);;
+        [1] ) (install_shadowsocks_latest);;
+        [2] ) (install_shadowsocks_rpm);;
+        [3] ) (install_shadowsocks_old_version);;
         *) echo "Bye~~~";;
     esac
 }
@@ -99,23 +175,67 @@ function install_shadowsocks_rpm() {
     start
 }
 
-function install_shadowsocks_old_version() {
-    # read -p "Which version do you want to install? (Default: 2.5.5)" VERSION
-    # [ -z "$VERSION" ] && VERSION="2.5.5"
+function install_shadowsocks_latest() {
+    # Install necessary dependencies (copy from teddysun)
+    echo -e "[${green}Info${plain}] Checking the EPEL repository..."
+    if [ ! -f /etc/yum.repos.d/epel.repo ]; then
+        yum install -y -q epel-release
+    fi
 
-    echo "Installing shadowsocks-libev 2.5.5"
-    VERSION="2.5.5"
+    [ ! -f /etc/yum.repos.d/epel.repo ] && echo -e "[${red}Error${plain}] Install EPEL repository failed, please check it." && exit 1
+    [ ! "$(command -v yum-config-manager)" ] && yum install -y -q yum-utils
+    if [ x"`yum-config-manager epel | grep -w enabled | awk '{print $3}'`" != x"True" ]; then
+        yum-config-manager --enable epel
+    fi
+    echo -e "[${green}Info${plain}] Checking the EPEL repository complete..."
+    yum install -y -q unzip openssl openssl-devel gettext gcc autoconf libtool automake make asciidoc xmlto libev-devel pcre pcre-devel git c-ares-devel
+
+    # Other dependencies
+    install_libsodium
+    install_mbedtls
+    ldconfig
+
+    # copy from teddysun
+    echo "Start downloading latest shadowsocks-libev..."
+    ver=$(wget --no-check-certificate -qO- https://api.github.com/repos/shadowsocks/shadowsocks-libev/releases/latest | grep 'tag_name' | cut -d\" -f4)
+    [ -z ${ver} ] && echo "Error: Get shadowsocks-libev latest version failed" && exit 1
+    shadowsocks_libev_ver="shadowsocks-libev-$(echo ${ver} | sed -e 's/^[a-zA-Z]//g')"
+    download_link="https://github.com/shadowsocks/shadowsocks-libev/releases/download/${ver}/${shadowsocks_libev_ver}.tar.gz"
+    shadowsocks_libev_file="${shadowsocks_libev_ver}.tar.gz"
+
+    download "${shadowsocks_libev_file}" "${download_link}"
+    tar -zxf ${shadowsocks_libev_file}
+
+    cd ${shadowsocks_libev_ver}
+    ./configure --prefix=/usr --disable-documentation
+    make && make install
+
+    cd ..
+    rm -rf ${shadowsocks_libev_ver}*
+
+    install_shadowsocks_script
+
+    echo ""
+    echo -e "\033[42;37m SUCCESS \033[0m Shadowsocks installed."
+    start
+}
+
+function install_shadowsocks_old_version() {
+    # read -p "Which version do you want to install? (Default: 2.5.5)" old_version
+    # [ -z "$old_version" ] && old_version="2.5.5"
+
+    echo "Installing shadowsocks-libev v${old_version}"
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
     yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
-    wget --no-check-certificate --progress=bar:force https://github.com/shadowsocks/shadowsocks-libev/archive/v$VERSION.tar.gz -O shadowsocks-libev-$VERSION.tar.gz 2>&1 | progressfilter
-    tar -zxf shadowsocks-libev-$VERSION.tar.gz
-    cd shadowsocks-libev-$VERSION
+    download "shadowsocks-libev-$old_version.tar.gz" "https://github.com/shadowsocks/shadowsocks-libev/archive/v$old_version.tar.gz"
+    tar -zxf shadowsocks-libev-$old_version.tar.gz
+    cd shadowsocks-libev-$old_version
     ./configure --prefix=/usr
     make && make install
 
     cd ..
-    rm -rf shadowsocks-libev-$VERSION*
+    rm -rf shadowsocks-libev-$old_version*
 
     install_shadowsocks_script
 
@@ -127,7 +247,7 @@ function install_shadowsocks_old_version() {
 function install_shadowsocks_script() {
     echo ""
     echo "Downloading shadowsocks startup script."
-    wget --no-check-certificate --progress=bar:force https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh -O /etc/init.d/shadowsocks 2>&1 | progressfilter
+    download "/etc/init.d/shadowsocks" "https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh"
     chmod 755 /etc/init.d/shadowsocks
     echo "Configuring startup script."
     chkconfig --add shadowsocks
@@ -276,15 +396,23 @@ function config_shadowsocks() {
 	# port,password,encryption-method
     mkdir $conf_file_path -p
 
+    if check_kernel_version; then
+        fast_open="true"
+    else
+        fast_open="false"
+    fi
+
     cat > ${4}<<-EOF
 {
     "server":"0.0.0.0",
     "server_port":${1},
-    "local_address":"127.0.0.1",
+    "local_address":"0.0.0.0",
     "local_port":1080,
     "password":"${2}",
-    "timeout":600,
-    "method":"${3}"
+    "timeout":300,
+    "fast_open":${fast_open},
+    "method":"${3}",
+    "mode":"tcp_and_udp"
 }
 EOF
 
@@ -375,10 +503,10 @@ function remove_service() {
 
 function start() {
     echo ""
-    echo "Which do you want to do?"
-    echo "1. Install"
-    echo "2. Add port"
-    echo "3. Remove port"
+    echo "Which one do you want to do?"
+    echo "1. Install shadowsocks-libev"
+    echo "2. Add shadowsocks port"
+    echo "3. Remove shadowsocks port"
     read -p "Input the number and press enter. (Press any other key to exit) " num
 
     case "$num" in
