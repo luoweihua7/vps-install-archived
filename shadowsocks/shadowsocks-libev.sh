@@ -188,7 +188,7 @@ install_shadowsocks_latest() {
     [ ! -f /etc/yum.repos.d/epel.repo ] && echo -e "\033[41;37m ERROR \033[0m Install EPEL repository failed, please check it." && exit 1
     [ ! "$(command -v yum-config-manager)" ] && yum install -y -q yum-utils
     if [ x"`yum-config-manager epel | grep -w enabled | awk '{print $3}'`" != x"True" ]; then
-        yum-config-manager --enable epel &>/dev/null
+        yum-config-manager --enable epel
     fi
     echo -e "[${green}INFO${plain}] Install necessary dependencies..."
     yum install -y -q unzip openssl openssl-devel gettext gcc autoconf libtool automake make asciidoc xmlto libev-devel pcre pcre-devel git c-ares-devel
