@@ -12,7 +12,7 @@ conf_file_path="/home/conf/shadowsocks"
 
 start() {
   if [ -d $conf_file_path ]; then
-    echo "Launching shadowsocks initialization scripts"
+    echo "Starting up shadowsocks-libev service..."
     for f in $conf_file_path/* ; do
       pid=`ps aux | grep "$f" | grep -v "grep" | awk '{print $2}'`
       if [ ! $pid ]; then
@@ -29,7 +29,7 @@ start() {
 
 stop() {
   if [ -d $conf_file_path ]; then
-    echo "Launching shadowsocks termination scripts"
+    echo "Shuting down shadowsocks-libev service..."
     for f in $conf_file_path/* ; do
       pid=`ps aux | grep "$f" | grep -v "grep" | awk '{print $2}'`
       if [ ! $pid ]; then
