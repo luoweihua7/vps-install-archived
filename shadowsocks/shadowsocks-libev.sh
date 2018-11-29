@@ -20,16 +20,16 @@ yellow='\033[0;33m'
 plain='\033[0m'
 
 # Get version
-function get_os_version(){
+get_os_version(){
     if [[ -s /etc/redhat-release ]];then
         grep -oE  "[0-9.]+" /etc/redhat-release
-    else    
+    else
         grep -oE  "[0-9.]+" /etc/issue
-    fi    
+    fi
 }
 
 # CentOS version
-function sys_version(){
+sys_version(){
     local code=$1
     local version="`get_os_version`"
     local main_ver=${version%%.*}
@@ -40,17 +40,17 @@ function sys_version(){
     fi        
 }
 
-function fun_randstr(){
-  index=0
-  strRandomPass=""
-  for i in {a..z}; do arr[index]=$i; index=`expr ${index} + 1`; done
-  for i in {A..Z}; do arr[index]=$i; index=`expr ${index} + 1`; done
-  for i in {0..9}; do arr[index]=$i; index=`expr ${index} + 1`; done
-  for i in {1..16}; do strRandomPass="$strRandomPass${arr[$RANDOM%$index]}"; done
-  echo $strRandomPass
+fun_randstr(){
+    index=0
+    strRandomPass=""
+    for i in {a..z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {A..Z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {0..9}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {1..16}; do strRandomPass="$strRandomPass${arr[$RANDOM%$index]}"; done
+    echo $strRandomPass
 }
 
-function random(){  
+random(){  
     min=$1  
     max=$(($2-$min+1))  
     num=$(($RANDOM+1000000000))  
@@ -66,6 +66,9 @@ disable_selinux(){
 }
 
 # check kernel version for fast open
+version_gt(){
+    test "$(echo "$@" | tr " " "\n" | sort -V | head -n 1)" != "$1"
+}
 check_kernel_version(){
     local kernel_version=$(uname -r | cut -d- -f1)
     if version_gt ${kernel_version} 3.7.0; then
@@ -75,7 +78,7 @@ check_kernel_version(){
     fi
 }
 
-# function copy from teddysun
+# copy from teddysun
 download() {
     local filename=${1}
     local cur_dir=`pwd`
@@ -94,7 +97,7 @@ download() {
     fi
 }
 
-# function copy from teddysun
+# copy from teddysun
 install_libsodium() {
     if [ ! -f /usr/lib/libsodium.a ]; then
         cd ${cur_dir}
@@ -115,7 +118,7 @@ install_libsodium() {
         echo -e "[${green}INFO${plain}] ${libsodium_file} already installed."
     fi
 }
-# function copy from teddysun
+# copy from teddysun
 install_mbedtls() {
     if [ ! -f /usr/lib/libmbedtls.a ]; then
         cd ${cur_dir}
@@ -138,7 +141,7 @@ install_mbedtls() {
     fi
 }
 
-function install_shadowsocks(){
+install_shadowsocks(){
     disable_selinux
 
     echo ""
@@ -157,7 +160,7 @@ function install_shadowsocks(){
     esac
 }
 
-function install_shadowsocks_rpm() {
+install_shadowsocks_rpm() {
     if sys_version 6; then
         wget -P /etc/yum.repos.d/ ${epel_centos6}
     elif sys_version 7; then
@@ -175,7 +178,7 @@ function install_shadowsocks_rpm() {
     start
 }
 
-function install_shadowsocks_latest() {
+install_shadowsocks_latest() {
     # Install necessary dependencies (copy from teddysun)
     echo -e "[${green}INFO${plain}] Checking the EPEL repository..."
     if [ ! -f /etc/yum.repos.d/epel.repo ]; then
@@ -220,7 +223,7 @@ function install_shadowsocks_latest() {
     start
 }
 
-function install_shadowsocks_old_version() {
+install_shadowsocks_old_version() {
     # read -p "Which version do you want to install? (Default: 2.5.5)" old_version
     # [ -z "$old_version" ] && old_version="2.5.5"
 
@@ -244,7 +247,7 @@ function install_shadowsocks_old_version() {
     start
 }
 
-function install_shadowsocks_script() {
+install_shadowsocks_script() {
     echo ""
     echo -e "[${green}INFO${plain}] Downloading shadowsocks startup script."
     download "/etc/init.d/shadowsocks" "https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh"
@@ -255,7 +258,7 @@ function install_shadowsocks_script() {
     echo -e "[${green}INFO${plain}] Startup script setup completed."
 }
 
-function add_service() {
+add_service() {
     default_password=`fun_randstr`
     default_port=`random 10000 60000`
 
@@ -281,34 +284,47 @@ function add_service() {
     [ -z "$PASSWORD" ] && PASSWORD=$default_password
 
     # set shadowsocks encrypt mode
-    echo ""
-    echo "Please select shadowsocks encrypt mode"
-    echo "1: rc4-md5"
-    echo "2: aes-128-cfb"
-    echo "3: aes-256-cfb"
-    echo "4: chacha20"
-    echo "5: chacha20-ietf"
-    read -p "Enter your choice (1, 2, 3, 4 or 5. default [3]) " ENCRYPT
-    case "$ENCRYPT" in
-        1)
-            ENCRYPT="rc4-md5"
-            ;;
-        2)
-            ENCRYPT="aes-128-cfb"
-            ;;
-        3)
-            ENCRYPT="aes-256-cfb"
-            ;;
-        4)
-            ENCRYPT="chacha20"
-            ;;
-        5)
-            ENCRYPT="chacha20-ietf"
-            ;;
-        *)
-            ENCRYPT="aes-256-cfb"
-            ;;
-    esac
+    ciphers=(
+        aes-256-cfb
+        aes-192-cfb
+        aes-128-cfb
+        aes-256-gcm
+        aes-192-gcm
+        aes-128-gcm
+        aes-256-ctr
+        aes-192-ctr
+        aes-128-ctr
+        camellia-128-cfb
+        camellia-192-cfb
+        camellia-256-cfb
+        xchacha20-ietf-poly1305
+        chacha20-ietf-poly1305
+        chacha20-ietf
+        chacha20
+        salsa20
+        rc4-md5
+    )
+    while true
+    do
+    echo -e "Please select stream cipher for shadowsocks-libev:"
+    for ((i=1;i<=${#ciphers[@]};i++ )); do
+        hint="${ciphers[$i-1]}"
+        echo -e "${green}${i}${plain}) ${hint}"
+    done
+    read -p "Which cipher you'd select(Default: ${ciphers[0]}):" pick
+    [ -z "$pick" ] && pick=1
+    expr ${pick} + 1 &>/dev/null
+    if [ $? -ne 0 ]; then
+        echo -e "[${red}Error${plain}] Please enter a number"
+        continue
+    fi
+    if [[ "$pick" -lt 1 || "$pick" -gt ${#ciphers[@]} ]]; then
+        echo -e "[${red}Error${plain}] Please enter a number between 1 and ${#ciphers[@]}"
+        continue
+    fi
+    ENCRYPT=${ciphers[$pick-1]}
+    break
+    done
 
     shadowsocks_config_file="$conf_file_path/conf.$PORT.json"
 
@@ -336,7 +352,7 @@ function add_service() {
     fi
 }
 
-function add_firewall() {
+add_firewall() {
     PORT=$1
 
     echo -e "[${green}INFO${plain}] Configuring firewall..."
@@ -392,7 +408,7 @@ function add_firewall() {
     echo -e "[${green}INFO${plain}] Firewall setup completed..."
 }
 
-function config_shadowsocks() {
+config_shadowsocks() {
 	# port,password,encryption-method
     mkdir $conf_file_path -p
 
@@ -420,7 +436,7 @@ EOF
     echo -e "[${green}INFO${plain}] Shadowsocks config file created."
 }
 
-function remove_service() {
+remove_service() {
     default_del_port="0"
 
     while true
@@ -501,7 +517,7 @@ function remove_service() {
     fi
 }
 
-function start() {
+start() {
     echo ""
     echo "Which one do you want to do?"
     echo "1. Install shadowsocks-libev"
