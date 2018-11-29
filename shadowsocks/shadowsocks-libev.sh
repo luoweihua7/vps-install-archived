@@ -343,7 +343,8 @@ add_service() {
         echo -e "Your Password is\t\033[32m$PASSWORD\033[0m"
         echo -e "Your Encryption Method\t\033[32m$ENCRYPT\033[0m"
         echo ""
-        echo -e "\033[42;37m SUCCESS \033[0m Service added."
+        echo -e "\033[42;37m SUCCESS \033[0m Config file created..."
+        echo -e "\033[42;37m SUCCESS \033[0m Service has started..."
         echo ""
     else
         echo ""
