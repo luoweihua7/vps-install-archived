@@ -91,7 +91,7 @@ download() {
         if [ $? -eq 0 ]; then
             echo -e "[${green}INFO${plain}] ${filename} download completed..."
         else
-            echo -e "[${red}ERROR${plain}] Failed to download ${filename}, please download it to ${cur_dir} directory manually and try again."
+            echo -e "\033[41;37m ERROR \033[0m Failed to download ${filename}, please download it to ${cur_dir} directory manually and try again."
             exit 1
         fi
     fi
@@ -106,7 +106,7 @@ install_libsodium() {
         cd ${libsodium_file}
         ./configure --prefix=/usr && make && make install
         if [ $? -ne 0 ]; then
-            echo -e "[${red}ERROR${plain}] ${libsodium_file} install failed."
+            echo -e "\033[41;37m ERROR \033[0m ${libsodium_file} install failed."
             exit 1
         else
             echo -e "[${green}INFO${plain}] ${libsodium_file} installed."
@@ -128,7 +128,7 @@ install_mbedtls() {
         make SHARED=1 CFLAGS=-fPIC
         make DESTDIR=/usr install
         if [ $? -ne 0 ]; then
-            echo -e "[${red}ERROR${plain}] ${mbedtls_file} install failed."
+            echo -e "\033[41;37m ERROR \033[0m ${mbedtls_file} install failed."
             exit 1
         else
             echo -e "[${green}INFO${plain}] ${mbedtls_file} installed."
@@ -185,7 +185,7 @@ install_shadowsocks_latest() {
         yum install -y -q epel-release
     fi
 
-    [ ! -f /etc/yum.repos.d/epel.repo ] && echo -e "[${red}ERROR${plain}] Install EPEL repository failed, please check it." && exit 1
+    [ ! -f /etc/yum.repos.d/epel.repo ] && echo -e "\033[41;37m ERROR \033[0m Install EPEL repository failed, please check it." && exit 1
     [ ! "$(command -v yum-config-manager)" ] && yum install -y -q yum-utils
     if [ x"`yum-config-manager epel | grep -w enabled | awk '{print $3}'`" != x"True" ]; then
         yum-config-manager --enable epel &>/dev/null
@@ -201,7 +201,7 @@ install_shadowsocks_latest() {
     # copy from teddysun
     echo -e "[${green}INFO${plain}] Starting install latest shadowsocks-libev..."
     ver=$(wget --no-check-certificate -qO- https://api.github.com/repos/shadowsocks/shadowsocks-libev/releases/latest | grep 'tag_name' | cut -d\" -f4)
-    [ -z ${ver} ] && echo -e "[${red}ERROR${plain}] Get shadowsocks-libev latest version failed" && exit 1
+    [ -z ${ver} ] && echo -e "\033[41;37m ERROR \033[0m Get shadowsocks-libev latest version failed" && exit 1
     shadowsocks_libev_ver="shadowsocks-libev-$(echo ${ver} | sed -e 's/^[a-zA-Z]//g')"
     download_link="https://github.com/shadowsocks/shadowsocks-libev/releases/download/${ver}/${shadowsocks_libev_ver}.tar.gz"
     shadowsocks_libev_file="${shadowsocks_libev_ver}.tar.gz"
@@ -272,10 +272,10 @@ add_service() {
         if [ $PORT -ge 1 ] && [ $PORT -le 65535 ]; then
             break
         else
-            echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
+            echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
         fi
     else
-        echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
+        echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
     fi
     done
 
@@ -315,11 +315,11 @@ add_service() {
     [ -z "$pick" ] && pick=1
     expr ${pick} + 1 &>/dev/null
     if [ $? -ne 0 ]; then
-        echo -e "[${red}Error${plain}] Please enter a number"
+        echo -e "\033[41;37m ERROR \033[0m Please enter a number"
         continue
     fi
     if [[ "$pick" -lt 1 || "$pick" -gt ${#ciphers[@]} ]]; then
-        echo -e "[${red}Error${plain}] Please enter a number between 1 and ${#ciphers[@]}"
+        echo -e "\033[41;37m ERROR \033[0m Please enter a number between 1 and ${#ciphers[@]}"
         continue
     fi
     ENCRYPT=${ciphers[$pick-1]}
@@ -449,10 +449,10 @@ remove_service() {
         if [ $DELPORT -ge 1 ] && [ $DELPORT -le 65535 ]; then
             break
         else
-            echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
+            echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
         fi
     else
-        echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
+        echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
     fi
     done
 
