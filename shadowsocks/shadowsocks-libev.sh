@@ -81,14 +81,14 @@ download() {
     local cur_dir=`pwd`
     [ ! "$(command -v wget)" ] && yum install -y -q wget
     if [ -s ${filename} ]; then
-        echo -e "[${green}Info${plain}] ${filename} already exists."
+        echo -e "[${green}INFO${plain}] ${filename} already exists."
     else
-        echo -e "[${green}Info${plain}] ${filename} downloading now, Please wait..."
+        echo -e "[${green}INFO${plain}] ${filename} downloading now, Please wait..."
         wget --no-check-certificate -cq -t3 ${2} -O ${1}
         if [ $? -eq 0 ]; then
-            echo -e "[${green}Info${plain}] ${filename} download completed..."
+            echo -e "[${green}INFO${plain}] ${filename} download completed..."
         else
-            echo -e "[${red}Error${plain}] Failed to download ${filename}, please download it to ${cur_dir} directory manually and try again."
+            echo -e "[${red}ERROR${plain}] Failed to download ${filename}, please download it to ${cur_dir} directory manually and try again."
             exit 1
         fi
     fi
@@ -103,16 +103,16 @@ install_libsodium() {
         cd ${libsodium_file}
         ./configure --prefix=/usr && make && make install
         if [ $? -ne 0 ]; then
-            echo -e "[${red}Error${plain}] ${libsodium_file} install failed."
+            echo -e "[${red}ERROR${plain}] ${libsodium_file} install failed."
             exit 1
         else
-            echo -e "[${green}Info${plain}] ${libsodium_file} installed."
+            echo -e "[${green}INFO${plain}] ${libsodium_file} installed."
         fi
 
         cd ${cur_dir}
         rm -rf ${libsodium_file}*
     else
-        echo -e "[${green}Info${plain}] ${libsodium_file} already installed."
+        echo -e "[${green}INFO${plain}] ${libsodium_file} already installed."
     fi
 }
 # function copy from teddysun
@@ -125,16 +125,16 @@ install_mbedtls() {
         make SHARED=1 CFLAGS=-fPIC
         make DESTDIR=/usr install
         if [ $? -ne 0 ]; then
-            echo -e "[${red}Error${plain}] ${mbedtls_file} install failed."
+            echo -e "[${red}ERROR${plain}] ${mbedtls_file} install failed."
             exit 1
         else
-            echo -e "[${green}Info${plain}] ${mbedtls_file} installed."
+            echo -e "[${green}INFO${plain}] ${mbedtls_file} installed."
         fi
 
         cd ${cur_dir}
         rm -rf ${mbedtls_file}*
     else
-        echo -e "[${green}Info${plain}] ${mbedtls_file} already installed."
+        echo -e "[${green}INFO${plain}] ${mbedtls_file} already installed."
     fi
 }
 
@@ -177,17 +177,17 @@ function install_shadowsocks_rpm() {
 
 function install_shadowsocks_latest() {
     # Install necessary dependencies (copy from teddysun)
-    echo -e "[${green}Info${plain}] Checking the EPEL repository..."
+    echo -e "[${green}INFO${plain}] Checking the EPEL repository..."
     if [ ! -f /etc/yum.repos.d/epel.repo ]; then
         yum install -y -q epel-release
     fi
 
-    [ ! -f /etc/yum.repos.d/epel.repo ] && echo -e "[${red}Error${plain}] Install EPEL repository failed, please check it." && exit 1
+    [ ! -f /etc/yum.repos.d/epel.repo ] && echo -e "[${red}ERROR${plain}] Install EPEL repository failed, please check it." && exit 1
     [ ! "$(command -v yum-config-manager)" ] && yum install -y -q yum-utils
     if [ x"`yum-config-manager epel | grep -w enabled | awk '{print $3}'`" != x"True" ]; then
-        yum-config-manager --enable epel
+        yum-config-manager --enable epel &>/dev/null
     fi
-    echo -e "[${green}Info${plain}] Checking the EPEL repository complete..."
+    echo -e "[${green}INFO${plain}] Install necessary dependencies..."
     yum install -y -q unzip openssl openssl-devel gettext gcc autoconf libtool automake make asciidoc xmlto libev-devel pcre pcre-devel git c-ares-devel
 
     # Other dependencies
@@ -196,9 +196,9 @@ function install_shadowsocks_latest() {
     ldconfig
 
     # copy from teddysun
-    echo "Start downloading latest shadowsocks-libev..."
+    echo -e "[${green}INFO${plain}] Starting install latest shadowsocks-libev..."
     ver=$(wget --no-check-certificate -qO- https://api.github.com/repos/shadowsocks/shadowsocks-libev/releases/latest | grep 'tag_name' | cut -d\" -f4)
-    [ -z ${ver} ] && echo "Error: Get shadowsocks-libev latest version failed" && exit 1
+    [ -z ${ver} ] && echo -e "[${red}ERROR${plain}] Get shadowsocks-libev latest version failed" && exit 1
     shadowsocks_libev_ver="shadowsocks-libev-$(echo ${ver} | sed -e 's/^[a-zA-Z]//g')"
     download_link="https://github.com/shadowsocks/shadowsocks-libev/releases/download/${ver}/${shadowsocks_libev_ver}.tar.gz"
     shadowsocks_libev_file="${shadowsocks_libev_ver}.tar.gz"
@@ -224,7 +224,7 @@ function install_shadowsocks_old_version() {
     # read -p "Which version do you want to install? (Default: 2.5.5)" old_version
     # [ -z "$old_version" ] && old_version="2.5.5"
 
-    echo "Installing shadowsocks-libev v${old_version}"
+    echo -e "[${green}INFO${plain}] Installing shadowsocks-libev v${old_version}"
     yum install -y wget unzip openssl-devel gcc swig python python-devel python-setuptools autoconf libtool libevent xmlto
     yum install -y automake make curl curl-devel zlib-devel openssl-devel perl perl-devel cpio expat-devel gettext-devel asciidoc pcre-devel
 
@@ -246,13 +246,13 @@ function install_shadowsocks_old_version() {
 
 function install_shadowsocks_script() {
     echo ""
-    echo "Downloading shadowsocks startup script."
+    echo -e "[${green}INFO${plain}] Downloading shadowsocks startup script."
     download "/etc/init.d/shadowsocks" "https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh"
     chmod 755 /etc/init.d/shadowsocks
-    echo "Configuring startup script."
+    echo -e "[${green}INFO${plain}] Configuring startup script."
     chkconfig --add shadowsocks
     chkconfig shadowsocks on
-    echo "Startup script setup completed."
+    echo -e "[${green}INFO${plain}] Startup script setup completed."
 }
 
 function add_service() {
@@ -269,10 +269,10 @@ function add_service() {
         if [ $PORT -ge 1 ] && [ $PORT -le 65535 ]; then
             break
         else
-            echo "Input error! Please input correct numbers."
+            echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
         fi
     else
-        echo "Input error! Please input correct numbers."
+        echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
     fi
     done
 
@@ -339,7 +339,7 @@ function add_service() {
 function add_firewall() {
     PORT=$1
 
-    echo "Configuring firewall..."
+    echo -e "[${green}INFO${plain}] Configuring firewall..."
 
     if sys_version 6; then
         # check iptables is installed
@@ -360,7 +360,7 @@ function add_firewall() {
                     echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown, please manually set it if necessary."
                 fi
             else
-                echo "Port $PORT has been set up."
+                echo -e "[${green}INFO${plain}] Port $PORT has been set up."
             fi
         else
             echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed, please manually set it if necessary."
@@ -374,7 +374,7 @@ function add_firewall() {
                 firewall-cmd --permanent --zone=public --add-port=$PORT/udp -q
                 firewall-cmd --reload -q
             else
-                echo "Firewalld looks like not running, try to start..."
+                echo -e "[${green}INFO${plain}] Firewalld looks like not running, try to start..."
                 systemctl start firewalld -q
                 if [ $? -eq 0 ];then
                     firewall-cmd --permanent --zone=public --add-port=$PORT/tcp -q
@@ -389,7 +389,7 @@ function add_firewall() {
         fi
     fi
 
-    echo "Firewall setup completed..."
+    echo -e "[${green}INFO${plain}] Firewall setup completed..."
 }
 
 function config_shadowsocks() {
@@ -417,7 +417,7 @@ function config_shadowsocks() {
 EOF
 
     echo ""
-    echo "Shadowsocks config file created."
+    echo -e "[${green}INFO${plain}] Shadowsocks config file created."
 }
 
 function remove_service() {
@@ -433,10 +433,10 @@ function remove_service() {
         if [ $DELPORT -ge 1 ] && [ $DELPORT -le 65535 ]; then
             break
         else
-            echo "Input error! Please input correct numbers."
+            echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
         fi
     else
-        echo "Input error! Please input correct numbers."
+        echo -e "[${red}ERROR${plain}] Input error! Please input correct numbers."
     fi
     done
 
@@ -447,7 +447,7 @@ function remove_service() {
         echo ""
         remove_service
     else
-        echo "Killing process..."
+        echo -e "[${green}INFO${plain}] Killing process..."
         delpid=`ps aux | grep "$del_port_file" | grep -v "grep" | awk '{print $2}'`
         if [ ! $delpid ]; then
             echo "Shadowsocks process list:"
@@ -460,9 +460,9 @@ function remove_service() {
             fi
         fi
 
-        echo "Removing config file..."
+        echo -e "[${green}INFO${plain}] Removing config file..."
         rm -rf $del_port_file
-        echo "Configuring firewall..."
+        echo -e "[${green}INFO${plain}] Configuring firewall..."
         if sys_version 6; then
             iptables_installed=`rpm -qa | grep iptables | wc -l`
             if [ $iptables_installed -ne 0 ]; then
