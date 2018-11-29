@@ -50,13 +50,6 @@ fun_randstr(){
     echo $strRandomPass
 }
 
-random(){  
-    min=$1  
-    max=$(($2-$min+1))  
-    num=$(($RANDOM+1000000000))  
-    echo $(($num%$max+$min))  
-}
-
 # Disable selinux
 disable_selinux(){
     if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then
@@ -260,7 +253,7 @@ install_shadowsocks_script() {
 
 add_service() {
     default_password=`fun_randstr`
-    default_port=`random 10000 60000`
+    default_port=$(shuf -i 10000-39999 -n 1)
 
     while true
     do
