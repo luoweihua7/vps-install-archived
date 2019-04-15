@@ -274,7 +274,7 @@ install_shadowsocks_old_version() {
 install_shadowsocks_script() {
     echo ""
     echo -e "[${green}INFO${plain}] Downloading shadowsocks startup script."
-    download "/etc/init.d/shadowsocks" "https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh" "${is_need_token}"
+    download "/etc/init.d/shadowsocks" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/shadowsocks/shadowsocks.d.sh" "${is_need_token}"
     chmod 755 /etc/init.d/shadowsocks
     echo -e "[${green}INFO${plain}] Configuring startup script."
     chkconfig --add shadowsocks
