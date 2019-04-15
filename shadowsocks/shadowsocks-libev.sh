@@ -13,6 +13,10 @@ mbedtls_url="https://tls.mbed.org/download/${mbedtls_file}-gpl.tgz"
 cur_dir=`pwd`
 old_version="2.5.5"
 
+# Is need github private access token, 0:no, 1:yes
+is_need_token="1"
+private_token=""
+
 # Colors (copy from teddysun)
 red='\033[0;31m'
 green='\033[0;32m'
@@ -82,12 +86,31 @@ check_kernel_headers(){
 download() {
     local filename=${1}
     local cur_dir=`pwd`
+    local need_token=${3}
     [ ! "$(command -v wget)" ] && yum install -y -q wget
+
+    if [ "$need_token" == "1" ]; then
+        while true
+        do
+        read -p "Input Github repo Access Token please:" access_token
+        if [ -z ${access_token} ]; then
+            echo -e "\033[41;37m ERROR \033[0m Access Token required!!!"
+            continue
+        fi
+        private_token=${access_token}
+        break
+        done
+    fi
+
     if [ -s ${filename} ]; then
         echo -e "[${green}INFO${plain}] ${filename} already exists."
     else
         echo -e "[${green}INFO${plain}] ${filename} downloading now, Please wait..."
-        wget --no-check-certificate -cq -t3 ${2} -O ${1}
+        if [ "${need_token}" == "1"]; then
+            wget --header="Authorization: token ${private_token}" --no-check-certificate -cq -t3 ${2} -O ${1}
+        else
+            wget --no-check-certificate -cq -t3 ${2} -O ${1}
+        fi
         if [ $? -eq 0 ]; then
             echo -e "[${green}INFO${plain}] ${filename} download completed..."
         else
@@ -206,7 +229,7 @@ install_shadowsocks_latest() {
     download_link="https://github.com/shadowsocks/shadowsocks-libev/releases/download/${ver}/${shadowsocks_libev_ver}.tar.gz"
     shadowsocks_libev_file="${shadowsocks_libev_ver}.tar.gz"
 
-    download "${shadowsocks_libev_file}" "${download_link}"
+    download "${shadowsocks_libev_file}" "${download_link}" "${is_need_token}"
     tar -zxf ${shadowsocks_libev_file}
 
     cd ${shadowsocks_libev_ver}
@@ -250,7 +273,7 @@ install_shadowsocks_old_version() {
 install_shadowsocks_script() {
     echo ""
     echo -e "[${green}INFO${plain}] Downloading shadowsocks startup script."
-    download "/etc/init.d/shadowsocks" "https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh"
+    download "/etc/init.d/shadowsocks" "https://github.com/luoweihua7/vps-install/raw/master/shadowsocks/shadowsocks.d.sh" "${is_need_token}"
     chmod 755 /etc/init.d/shadowsocks
     echo -e "[${green}INFO${plain}] Configuring startup script."
     chkconfig --add shadowsocks
