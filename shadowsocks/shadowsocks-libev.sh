@@ -92,7 +92,7 @@ download() {
     if [ "$need_token" == "1" ]; then
         while true
         do
-        read -p $"\e${green}INFO${plain} Input Github repo Access Token please: " access_token
+        read -p $"[\e\033[0;32mINFO\033[0m] Input Github repo Access Token please: " access_token
         if [ -z ${access_token} ]; then
             echo -e "\033[41;37m ERROR \033[0m Access Token required!!!"
             continue
