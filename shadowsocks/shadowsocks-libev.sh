@@ -115,6 +115,7 @@ download() {
             echo -e "[${green}INFO${plain}] ${filename} download completed..."
         else
             echo -e "\033[41;37m ERROR \033[0m Failed to download ${filename}, please download it to ${cur_dir} directory manually and try again."
+            echo -e "Download link: ${2}"
             exit 1
         fi
     fi
@@ -229,7 +230,7 @@ install_shadowsocks_latest() {
     download_link="https://github.com/shadowsocks/shadowsocks-libev/releases/download/${ver}/${shadowsocks_libev_ver}.tar.gz"
     shadowsocks_libev_file="${shadowsocks_libev_ver}.tar.gz"
 
-    download "${shadowsocks_libev_file}" "${download_link}" "${is_need_token}"
+    download "${shadowsocks_libev_file}" "${download_link}"
     tar -zxf ${shadowsocks_libev_file}
 
     cd ${shadowsocks_libev_ver}
