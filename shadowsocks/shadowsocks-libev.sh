@@ -17,7 +17,6 @@ old_version="2.5.5"
 is_need_token="1"
 private_token=""
 
-# Colors (copy from teddysun)
 red='\033[0;31m'
 green='\033[0;32m'
 yellow='\033[0;33m'
@@ -82,7 +81,6 @@ check_kernel_headers(){
     fi
 }
 
-# copy from teddysun
 download() {
     local filename=${1}
     local cur_dir=`pwd`
@@ -114,14 +112,14 @@ download() {
         if [ $? -eq 0 ]; then
             echo -e "[${green}INFO${plain}] ${filename} download completed..."
         else
-            echo -e "\033[41;37m ERROR \033[0m Failed to download ${filename}, please download it to ${cur_dir} directory manually and try again."
+            echo -e "\033[41;37m ERROR \033[0m Failed to download ${filename}, please download it to ${1} directory manually and try again."
             echo -e "Download link: ${2}"
+            echo ""
             exit 1
         fi
     fi
 }
 
-# copy from teddysun
 install_libsodium() {
     if [ ! -f /usr/lib/libsodium.a ]; then
         cd ${cur_dir}
@@ -142,7 +140,7 @@ install_libsodium() {
         echo -e "[${green}INFO${plain}] ${libsodium_file} already installed."
     fi
 }
-# copy from teddysun
+
 install_mbedtls() {
     if [ ! -f /usr/lib/libmbedtls.a ]; then
         cd ${cur_dir}
@@ -203,7 +201,7 @@ install_shadowsocks_rpm() {
 }
 
 install_shadowsocks_latest() {
-    # Install necessary dependencies (copy from teddysun)
+    # Install necessary dependencies
     echo -e "[${green}INFO${plain}] Checking the EPEL repository..."
     if [ ! -f /etc/yum.repos.d/epel.repo ]; then
         yum install -y -q epel-release
@@ -222,7 +220,6 @@ install_shadowsocks_latest() {
     install_mbedtls
     ldconfig
 
-    # copy from teddysun
     echo -e "[${green}INFO${plain}] Starting install latest shadowsocks-libev..."
     ver=$(wget --no-check-certificate -qO- https://api.github.com/repos/shadowsocks/shadowsocks-libev/releases/latest | grep 'tag_name' | cut -d\" -f4)
     [ -z ${ver} ] && echo -e "\033[41;37m ERROR \033[0m Get shadowsocks-libev latest version failed" && exit 1
