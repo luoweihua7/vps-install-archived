@@ -92,7 +92,7 @@ download() {
     if [ "$need_token" == "1" ]; then
         while true
         do
-        read -p "Input Github repo Access Token please:" access_token
+        read -p $"\e${green}INFO${plain} Input Github repo Access Token please: " access_token
         if [ -z ${access_token} ]; then
             echo -e "\033[41;37m ERROR \033[0m Access Token required!!!"
             continue
@@ -106,7 +106,7 @@ download() {
         echo -e "[${green}INFO${plain}] ${filename} already exists."
     else
         echo -e "[${green}INFO${plain}] ${filename} downloading now, Please wait..."
-        if [ "${need_token}" == "1"]; then
+        if [ "${need_token}" == "1" ]; then
             wget --header="Authorization: token ${private_token}" --no-check-certificate -cq -t3 ${2} -O ${1}
         else
             wget --no-check-certificate -cq -t3 ${2} -O ${1}
