@@ -89,7 +89,7 @@ download() {
     local need_token=${3}
     [ ! "$(command -v wget)" ] && yum install -y -q wget
 
-    if [ "$need_token" == "1" ]; then
+    if [ "$need_token" == "1" ] && [ -z ${private_token} ]; then
         while true
         do
         read -p $'[\e\033[0;32mINFO\033[0m] Input Github repo Access Token please: ' access_token

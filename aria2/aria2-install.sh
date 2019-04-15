@@ -2,6 +2,10 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
+# Is need github private access token, 0:no, 1:yes
+is_need_token="1"
+private_token=""
+
 function get_os_version(){
     if [[ -s /etc/redhat-release ]];then
         grep -oE  "[0-9.]+" /etc/redhat-release
@@ -49,8 +53,25 @@ function install_aria2c() {
     mkdir /home/downloads -p
     mkdir /home/www -p
 
+    if [ "$need_token" == "1" ] && [ -z ${private_token} ]; then
+        while true
+        do
+        read -p $'[\e\033[0;32mINFO\033[0m] Input Github repo Access Token please: ' access_token
+        if [ -z ${access_token} ]; then
+            echo -e "\033[41;37m ERROR \033[0m Access Token required!!!"
+            continue
+        fi
+        private_token=${access_token}
+        break
+        done
+    fi
+
     echo "Downloading file..."
-    wget --no-check-certificate --progress=bar:force https://github.com/luoweihua7/vps-install/raw/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz 2>&1 | progressfilter
+    if [ "${need_token}" == "1" ]; then
+        wget --header="Authorization: token ${private_token}" --no-check-certificate --progress=bar:force https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz 2>&1 | progressfilter
+    else
+        wget --no-check-certificate --progress=bar:force https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz 2>&1 | progressfilter
+    fi
     echo "Unzip file..."
     # aria2c file download from https://github.com/q3aql/aria2-static-builds
     tar zxf /tmp/aria2.tar.gz -C /home/conf/
