@@ -55,8 +55,8 @@ function install_aria2c() {
     rm -rf /tmp/aria2.tar.gz
 
     echo "Moving aria2c to correct directory"
-    mv /home/conf/aria2/aria2c /usr/local/bin
-    mv /home/conf/aria2/aria2.sh /etc/init.d/aria2
+    mv -f /home/conf/aria2/aria2c /usr/local/bin
+    mv -f /home/conf/aria2/aria2.sh /etc/init.d/aria2
     chmod 755 /etc/init.d/aria2
 
     chkconfig --add aria2
