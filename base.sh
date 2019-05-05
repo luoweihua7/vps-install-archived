@@ -24,7 +24,7 @@ uninstall_aliyun() {
 }
 
 setup_firewall() {
-    echo "Setup firewall..."
+    echo "Seting up firewall..."
     systemctl enable firewalld
     systemctl start firewalld
     firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT 0 -p icmp -s 0.0.0.0/0 -d 0.0.0.0/0 -j ACCEPT
@@ -42,7 +42,7 @@ setup_firewall() {
 }
 
 setup_ssh() {
-    echo "Setup ssh..."
+    echo "Seting up ssh..."
     echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuuDQDsn4dWXdmpVrO04yLc4ukE1lACuCdc6o5TTWvNQs7R6BTYrJDxDo0obJHFMaPQ755U5TcoeVP/5P7prsZxKqKrcKSU1G1MPyybXSW7vgvu5zyX65L470S983bM+1sIZT9LtBmnur+Fw80wCPMt70AQ+/URxenmcFr4F8V5eggUZdOF6vpPXDTDs3dXV26gD8Hw/oMwUpkRw7u7Lt2aKcPx/H9ocS4TBFVQRLC2R14rMWOjMNNuYt4dQsi+tCwruf2dYQVLbhxgDWuU6dZd2sdppOuTk+j5uvG/4ONJAvtTWM2FCrRk2DKHDYgntcr37ZNtF2zHjNYRz935Un/ luoweihua7@gmail.com" > ~/.ssh/authorized_keys
     sed -i -e "s/#Port 22/Port 26538/g" /etc/ssh/sshd_config
     sed -i -e "s/#PubkeyAuthentication/PubkeyAuthentication/g" /etc/ssh/sshd_config
@@ -51,11 +51,10 @@ setup_ssh() {
 }
 
 setup_tcp_hybla() {
-    echo "Setup BBR..."
+    echo "Seting up BBR..."
     /sbin/modprobe tcp_hybla
 
     echo "
-
 # hybla
 fs.file-max = 51200
 net.core.rmem_max = 67108864
@@ -78,23 +77,6 @@ net.ipv4.tcp_congestion_control = hybla" >> /etc/sysctl.conf
 
     sysctl -p >> /dev/null
     echo "BBR setup finished."
-}
-
-prepare() {
-    [ ! "$(command -v wget)" ] && yum install -y -q wget
-
-    if [ "$need_token" == "1" ] && [ -z ${private_token} ]; then
-        while true
-        do
-        read -p $'[\e\033[0;32mINFO\033[0m] Input Github repo Access Token please: ' access_token
-        if [ -z ${access_token} ]; then
-            echo -e "\033[41;37m ERROR \033[0m Access Token required!!!"
-            continue
-        fi
-        private_token=${access_token}
-        break
-        done
-    fi
 }
 
 setup() {
