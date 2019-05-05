@@ -61,6 +61,10 @@ setup() {
         download "/usr/share/nginx/html/${hint}" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/${hint}" "${is_need_token}"
     done
 
+    sed -i -e "s/#error_page/error_page/g" /etc/nginx/conf.d/default.conf
+    sed -i -e "s/404.html/40x.html/g" /etc/nginx/conf.d/default.conf
+    nginx -s reload
+
     echo "Done!"
     echo ""
 }
