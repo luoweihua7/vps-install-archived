@@ -57,6 +57,7 @@ setup() {
     )
     for ((i=1;i<=${#pages[@]};i++ )); do
         hint="${pages[$i-1]}"
+        rm -rf /usr/share/nginx/html/${hint}
         download "/usr/share/nginx/html/${hint}" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/${hint}" "${is_need_token}"
     done
 
