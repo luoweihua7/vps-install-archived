@@ -31,6 +31,8 @@ setup_firewall() {
     firewall-cmd --permanent --zone=public --add-port=22/tcp
     firewall-cmd --permanent --zone=public --add-port=80/tcp
     firewall-cmd --permanent --zone=public --add-port=443/tcp
+    firewall-cmd --permanent --zone=public --add-port=5555/tcp
+    firewall-cmd --permanent --zone=public --add-port=5555/udp
     firewall-cmd --permanent --zone=public --add-port=6800/tcp
     firewall-cmd --permanent --zone=public --add-port=6881-6999/tcp
     firewall-cmd --permanent --zone=public --add-port=6881-6999/udp
