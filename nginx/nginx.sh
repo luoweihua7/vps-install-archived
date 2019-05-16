@@ -29,16 +29,16 @@ download() {
     fi
 
     if [ -s ${filename} ] && [ "${is_replace}" == "0" ]; then
-        echo -e "[${green}INFO${plain}] ${filename} already exists."
+        echo -e "[\e\033[0;32mINFO\033[0m] ${filename} already exists."
     else
-        echo -e "[${green}INFO${plain}] ${filename} downloading now, Please wait..."
+        echo -e "[\e\033[0;32mINFO\033[0m] ${filename} downloading now, Please wait..."
         if [ "${need_token}" == "1" ]; then
             wget --header="Authorization: token ${private_token}" --no-check-certificate -cq -t3 ${2} -O ${1}
         else
             wget --no-check-certificate -cq -t3 ${2} -O ${1}
         fi
         if [ $? -eq 0 ]; then
-            echo -e "[${green}INFO${plain}] ${filename} download completed..."
+            echo -e "[\e\033[0;32mINFO\033[0m] ${filename} download completed..."
         else
             echo -e "\033[41;37m ERROR \033[0m Failed to download ${filename}, please download it to ${1} directory manually and try again."
             echo -e "Download link: ${2}"
@@ -107,11 +107,9 @@ add_upstream() {
     # We don't check config
     # nginx -t
 
-    echo -e "[${green}INFO${plain}] ${filename} Restarting nginx..."
-    echo ""
+    echo -e "[\e\033[0;32mINFO\033[0m] ${filename} Restarting nginx..."
     nginx -s reload
-    echo ""
-    echo -e "[${green}INFO${plain}] ${filename} Nginx restart done. If there are some error, please check manually"
+    echo -e "[\e\033[0;32mINFO\033[0m] ${filename} Nginx restart done. If there are some error, please check manually"
 }
 
 function start() {
