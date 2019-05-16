@@ -48,7 +48,7 @@ download() {
     fi
 }
 
-setup() {
+default_pages() {
     echo -e "Downloading custom pages..."
     pages=(
         index.html
@@ -58,7 +58,7 @@ setup() {
     for ((i=1;i<=${#pages[@]};i++ )); do
         hint="${pages[$i-1]}"
         rm -rf /usr/share/nginx/html/${hint}
-        download "/usr/share/nginx/html/${hint}" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/${hint}" "${is_need_token}"
+        download "/usr/share/nginx/html/${hint}" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/html/${hint}" "${is_need_token}"
     done
 
     sed -i -e "s/#error_page/error_page/g" /etc/nginx/conf.d/default.conf
@@ -69,4 +69,64 @@ setup() {
     echo ""
 }
 
-setup
+add_upstream() {
+    read -p $'[\e\033[0;32mINFO\033[0m] Input current domain please (eg. some.example.com): ' hostname
+    if [ -z ${hostname} ]; then
+        echo -e "\033[41;37m ERROR \033[0m Domain required!!!"
+        continue
+    fi
+
+    read -p $'[\e\033[0;32mINFO\033[0m] Input upstream domain please (eg. some.example.com): ' upstream_domain
+    if [ -z ${upstream_domain} ]; then
+        echo -e "\033[41;37m ERROR \033[0m Upstream Domain required!!!"
+        continue
+    fi
+
+    local default_port="80"
+    while true
+    do
+    echo ""
+    read -p $'[\e\033[0;32mINFO\033[0m] Please input upstream port number (Default: $default_port): ' upstream_port
+    [ -z "$upstream_port" ] && PORT=$default_port
+    expr $upstream_port + 0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        if [ $upstream_port -ge 1 ] && [ $upstream_port -le 65535 ]; then
+            break
+        else
+            echo -e "\033[41;37m ERROR \033[0m Input error! Port Number must between 1 and 65535."
+        fi
+    else
+        echo -e "\033[41;37m ERROR \033[0m Input error! Please input upstream port as numbers."
+    fi
+    done
+
+    download "/etc/nginx/conf.d/${hostname}.conf" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/template.conf" "${is_need_token}"
+    sed -i -e "s/_DOMAIN_/${hostname}/g" /etc/nginx/conf.d/${hostname}.conf
+    sed -i -e "s/_UPSTREAM_/${upstream_domain}/g" /etc/nginx/conf.d/${hostname}.conf
+    sed -i -e "s/_PORT_/${upstream_port}/g" /etc/nginx/conf.d/${hostname}.conf
+
+    # We don't check config
+    # nginx -t
+
+    echo -e "[${green}INFO${plain}] ${filename} Restarting nginx..."
+    echo ""
+    nginx -s reload
+    echo ""
+    echo -e "[${green}INFO${plain}] ${filename} Nginx restart done. If there are some error, please check manually"
+}
+
+function start() {
+    echo ""
+    echo "Which one do you want to do?"
+    echo "1. Change default pages [index.html/40x.html/50x.html]"
+    echo "2. Add upstream relay"
+    read -p "Please input the number and press enter.  (Press other key to exit): " num
+
+    case "$num" in
+    [1] ) (default_pages);;
+    [2] ) (add_upstream);;
+    *) echo "Bye~~~";;
+    esac
+}
+
+start
