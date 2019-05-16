@@ -3,7 +3,7 @@ PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
 # Is need github private access token, 0:no, 1:yes
-is_need_token="1"
+is_need_token="0"
 private_token=""
 
 # Replace exists file

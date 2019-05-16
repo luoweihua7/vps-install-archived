@@ -14,7 +14,7 @@ cur_dir=`pwd`
 old_version="2.5.5"
 
 # Is need github private access token, 0:no, 1:yes
-is_need_token="1"
+is_need_token="0"
 private_token=""
 
 red='\033[0;31m'
