@@ -100,7 +100,7 @@ add_upstream() {
     done
 
     read -p $'[\e\033[0;32mINFO\033[0m] Are you want to add basic auth? (Y/n): ' base_auth
-    if [ "${base_auth}" == "Y" ] || [ "${base_auth}" == "yes" ]; then
+    if [ "${base_auth}" == "Y" ] || [ "${base_auth}" == "y" ] || [ "${base_auth}" == "yes" ]; then
         base_auth="yes"
 
         read -p $'[\e\033[0;32mINFO\033[0m] Input username: ' username
