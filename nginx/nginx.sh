@@ -85,7 +85,6 @@ add_upstream() {
     local default_port="80"
     while true
     do
-    echo ""
     read -p $'[\e\033[0;32mINFO\033[0m] Please input upstream port number (Default: $default_port): ' upstream_port
     [ -z "$upstream_port" ] && PORT=$default_port
     expr $upstream_port + 0 &>/dev/null
