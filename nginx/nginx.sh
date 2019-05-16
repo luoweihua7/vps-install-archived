@@ -33,9 +33,9 @@ download() {
     else
         echo -e "[\e\033[0;32mINFO\033[0m] ${filename} downloading now, Please wait..."
         if [ "${need_token}" == "1" ]; then
-            wget --header="Authorization: token ${private_token}" --no-check-certificate -cq -t3 ${2} -O ${1}
+            wget --header="Authorization: token ${private_token}" --no-check-certificate --no-cache -cq -t3 ${2} -O ${1}
         else
-            wget --no-check-certificate -cq -t3 ${2} -O ${1}
+            wget --no-check-certificate --no-cache -cq -t3 ${2} -O ${1}
         fi
         if [ $? -eq 0 ]; then
             echo -e "[\e\033[0;32mINFO\033[0m] ${filename} download completed..."
