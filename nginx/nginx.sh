@@ -99,7 +99,7 @@ add_upstream() {
     fi
     done
 
-    read -p $'[\e\033[0;32mINFO\033[0m] Are you want to add basic auth? (Y/n): ' base_auth
+    read -p $'[\e\033[0;32mINFO\033[0m] Do you want to add basic auth? (Y/n): ' base_auth
     if [ "${base_auth}" == "Y" ] || [ "${base_auth}" == "y" ] || [ "${base_auth}" == "yes" ]; then
         base_auth="yes"
 
@@ -118,6 +118,13 @@ add_upstream() {
         base_auth="no"
     fi
 
+    read -p $'[\e\033[0;32mINFO\033[0m] Do you want to enable Websocket (Example: nonVNC)? (Y/n): ' ws_enable
+    if [ "${ws_enable}" == "Y" ] || [ "${ws_enable}" == "y" ] || [ "${ws_enable}" == "yes" ]; then
+        ws_enable="yes"
+    else
+        ws_enable="no"
+    fi
+
     download "/etc/nginx/conf.d/${hostname}.conf" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/template.conf" "${is_need_token}"
     sed -i -e "s/_DOMAIN_/${hostname}/g" /etc/nginx/conf.d/${hostname}.conf
     sed -i -e "s/_UPSTREAM_/${upstream_domain}/g" /etc/nginx/conf.d/${hostname}.conf
@@ -127,6 +134,15 @@ add_upstream() {
         mkdir /home/conf/auth -p
         htpasswd -bc /home/conf/auth/${hostname}.db ${username} ${password}
         sed -i -e "s/#auth_basic/auth_basic/g" /etc/nginx/conf.d/${hostname}.conf
+    fi
+
+    if [ "${ws_enable}" == "yes" ]; then
+        sed -i -e "5,10s/#//g" /etc/nginx/conf.d/${hostname}.conf
+        #sed -i -e "28,30s/#//g" /etc/nginx/conf.d/${hostname}.conf
+
+        sed -i -e "s/#proxy_http_version/proxy_http_version/g" /etc/nginx/conf.d/${hostname}.conf
+        sed -i -e "s/#proxy_set_header Upgrade/proxy_set_header Upgrade/g" /etc/nginx/conf.d/${hostname}.conf
+        sed -i -e "s/#proxy_set_header Connection/proxy_set_header Connection/g" /etc/nginx/conf.d/${hostname}.conf
     fi
 
     # We don't check config
