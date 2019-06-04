@@ -35,12 +35,10 @@ sys_version(){
 }
 
 fun_randstr(){
-    index=0
+    strNum=$1
+    [ -z "${strNum}" ] && strNum="16"
     strRandomPass=""
-    for i in {a..z}; do arr[index]=$i; index=`expr ${index} + 1`; done
-    for i in {A..Z}; do arr[index]=$i; index=`expr ${index} + 1`; done
-    for i in {0..9}; do arr[index]=$i; index=`expr ${index} + 1`; done
-    for i in {1..16}; do strRandomPass="$strRandomPass${arr[$RANDOM%$index]}"; done
+    strRandomPass=`tr -cd '[:alnum:]' < /dev/urandom | fold -w ${strNum} | head -n1`
     echo $strRandomPass
 }
 
@@ -111,7 +109,63 @@ download() {
     fi
 }
 
-install_nps() {
+add_firewall() {
+    PORT=$1
+
+    echo -e "[${green}INFO${plain}] Configuring firewall..."
+
+    if sys_version 6; then
+        # check iptables is installed
+        iptables_installed=`rpm -qa | grep iptables | wc -l`
+        if [ $iptables_installed -ne 0 ]; then
+            # check port is in use
+            is_port_in_use=`iptables -nL | grep "\:$PORT\b" | wc -l`
+            if [ $is_port_in_use -eq 0 ]; then
+                iptables -I INPUT -p tcp --dport $PORT -j ACCEPT
+                iptables -I INPUT -p udp --dport $PORT -j ACCEPT
+                service iptables save > /dev/null
+
+                # check is iptable start
+                is_iptables_started=`iptables -vL | grep "\b:\b" | awk '{split($NF,a,":");print a[2]}' | wc -l`
+                if [ $is_iptables_started -ne 0 ]; then
+                    service iptables restart > /dev/null
+                else
+                    echo -e "\033[41;37m WARNING \033[0m iptables looks like shutdown, please manually set it if necessary."
+                fi
+            else
+                echo -e "[${green}INFO${plain}] Port $PORT has been set up."
+            fi
+        else
+            echo -e "\033[41;37m WARNING \033[0m iptables looks like not installed, please manually set it if necessary."
+        fi
+    elif sys_version 7; then
+        firewalld_installed=`rpm -qa | grep firewalld | wc -l`
+        if [ $firewalld_installed -ne 0 ]; then
+            systemctl status firewalld > /dev/null 2>&1
+            if [ $? -eq 0 ];then
+                firewall-cmd --permanent --zone=public --add-port=$PORT/tcp -q
+                firewall-cmd --permanent --zone=public --add-port=$PORT/udp -q
+                firewall-cmd --reload -q
+            else
+                echo -e "[${green}INFO${plain}] Firewalld looks like not running, try to start..."
+                systemctl start firewalld -q
+                if [ $? -eq 0 ];then
+                    firewall-cmd --permanent --zone=public --add-port=$PORT/tcp -q
+                    firewall-cmd --permanent --zone=public --add-port=$PORT/udp -q
+                    firewall-cmd --reload -q
+                else
+                    echo -e "\033[41;37m WARNING \033[0m Try to start firewalld failed. please manually set it if necessary."
+                fi
+            fi
+        else
+            echo -e "\033[41;37m WARNING \033[0m Firewalld looks like not installed, please manually set it if necessary."
+        fi
+    fi
+
+    echo -e "[${green}INFO${plain}] Firewall setup completed..."
+}
+
+download_nps() {
     # Download file
     echo -e "[${green}INFO${plain}] Starting install latest NPS..."
     ver=$(wget --no-check-certificate -qO- https://api.github.com/repos/cnlh/nps/releases/latest | grep 'tag_name' | cut -d\" -f4)
@@ -122,7 +176,9 @@ install_nps() {
     echo "Unzip file..."
     tar -zxf ${nps_file} -C /usr/local/
     echo "Unzip done."
+}
 
+configure_nps() {
     # Config startup script
     echo ""
     echo -e "[${green}INFO${plain}] Downloading NPS startup script."
@@ -132,6 +188,69 @@ install_nps() {
     chkconfig --add nps
     chkconfig nps on
     echo -e "[${green}INFO${plain}] Startup script setup completed."
-
-    service nps start
 }
+
+configure_secret() {
+	# WebUI Port
+	local WEBPORT_DEFAULT=8080
+	while true
+    do
+    echo ""
+    read -p "Please input WebUI port number (Default: ${WEBPORT_DEFAULT}): " WEBPORT
+    [ -z "$WEBPORT" ] && WEBPORT=$WEBPORT_DEFAULT
+    expr $WEBPORT + 0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        if [ $WEBPORT -ge 1 ] && [ $WEBPORT -le 65535 ]; then
+            break
+        else
+            echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
+        fi
+    else
+        echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
+    fi
+    done
+
+    # Web Username
+	local USERNAME_DEFAULT="admin"
+	echo ""
+    read -p "Please input default user (Default: $USERNAME_DEFAULT): " USERNAME
+    [ -z "$USERNAME" ] && USERNAME=$USERNAME_DEFAULT
+
+	# Web Password
+	local PWD_DEFAULT=`fun_randstr`
+	echo ""
+    read -p "Please input default password (Default: $PWD_DEFAULT): " PWD
+    [ -z "$PWD" ] && PWD=$PWD_DEFAULT
+
+	# Auth KEY
+	local AUTH_KEY_DEFAULT=`fun_randstr 8`
+	echo ""
+    read -p "Please input default auth key (Default: $AUTH_KEY_DEFAULT): " AUTH_KEY
+    [ -z "$AUTH_KEY" ] && AUTH_KEY=$AUTH_KEY_DEFAULT
+
+	local AUTH_CRYPT_KEY=`fun_randstr`
+
+	local nps_conf="/usr/local/nps/conf/nps.conf"
+	sed -i -e "s/web_port/#web_port/g" ${nps_conf}
+	sed -i -e "s/web_username/#web_username/g" ${nps_conf}
+	sed -i -e "s/web_password/#web_password/g" ${nps_conf}
+	sed -i -e "s/auth_key/#auth_key/g" ${nps_conf}
+	sed -i -e "s/auth_crypt_key/#auth_crypt_key/g" ${nps_conf}
+
+	
+}
+
+install() {
+	download_nps
+	configure_nps
+	configure_secret
+
+    # startup
+	service nps start
+}
+
+uninstall() {
+	
+}
+
+install_nps

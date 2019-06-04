@@ -8,16 +8,24 @@
 # Short-Description: nps server
 ### END INIT INFO
 
+nps_path="/usr/local/nps/nps"
+
 start() {
-  service nps start
+  echo "Starting NPS service..."
+  ret=`${nps_path} start`
+  echo "NPS service started."
 }
 
 stop() {
-  service nps stop
+  echo "Stopping NPS service..."
+  ret=`${nps_path} stop`
+  echo "NPS service stoped."
 }
 
 restart() {
-  service nps restart
+  echo "Restarting NPS service..."
+  ret=`${nps_path} restart`
+  echo "NPS service restarted."
 }
 
 case "$1" in
