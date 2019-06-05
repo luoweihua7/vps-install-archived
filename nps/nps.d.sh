@@ -8,7 +8,7 @@
 # Short-Description: nps server
 ### END INIT INFO
 
-nps_path="/usr/local/nps/nps"
+nps_path="/usr/bin/nps"
 
 start() {
   echo "Starting NPS service..."

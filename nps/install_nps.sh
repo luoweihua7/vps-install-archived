@@ -173,9 +173,8 @@ download_nps() {
     local nps_file="linux_amd64_server.tar.gz"
     download_link="https://github.com/cnlh/nps/releases/download/${ver}/${nps_file}"
     download "${nps_file}" "${download_link}"
-    echo "Unzip file..."
-    tar -zxf ${nps_file} -C /usr/local/
-    echo "Unzip done."
+    echo "Unziping file..."
+    tar -zxf ${nps_file}
 }
 
 configure_nps() {
@@ -191,9 +190,9 @@ configure_nps() {
 }
 
 configure_secret() {
-	# WebUI Port
-	local WEBPORT_DEFAULT=8080
-	while true
+    # WebUI Port
+    local WEBPORT_DEFAULT=8080
+    while true
     do
     echo ""
     read -p "Please input WebUI port number (Default: ${WEBPORT_DEFAULT}): " WEBPORT
@@ -211,46 +210,62 @@ configure_secret() {
     done
 
     # Web Username
-	local USERNAME_DEFAULT="admin"
-	echo ""
+    local USERNAME_DEFAULT="admin"
+    echo ""
     read -p "Please input default user (Default: $USERNAME_DEFAULT): " USERNAME
     [ -z "$USERNAME" ] && USERNAME=$USERNAME_DEFAULT
 
-	# Web Password
-	local PWD_DEFAULT=`fun_randstr`
-	echo ""
+    # Web Password
+    local PWD_DEFAULT=`fun_randstr`
+    echo ""
     read -p "Please input default password (Default: $PWD_DEFAULT): " PWD
     [ -z "$PWD" ] && PWD=$PWD_DEFAULT
 
-	# Auth KEY
-	local AUTH_KEY_DEFAULT=`fun_randstr 8`
-	echo ""
+    # Auth KEY
+    local AUTH_KEY_DEFAULT=`fun_randstr 8`
+    echo ""
     read -p "Please input default auth key (Default: $AUTH_KEY_DEFAULT): " AUTH_KEY
     [ -z "$AUTH_KEY" ] && AUTH_KEY=$AUTH_KEY_DEFAULT
 
-	local AUTH_CRYPT_KEY=`fun_randstr`
+    local AUTH_CRYPT_KEY=`fun_randstr`
 
-	local nps_conf="/usr/local/nps/conf/nps.conf"
-	sed -i -e "s/web_port/#web_port/g" ${nps_conf}
-	sed -i -e "s/web_username/#web_username/g" ${nps_conf}
-	sed -i -e "s/web_password/#web_password/g" ${nps_conf}
-	sed -i -e "s/auth_key/#auth_key/g" ${nps_conf}
-	sed -i -e "s/auth_crypt_key/#auth_crypt_key/g" ${nps_conf}
+    # Remove default setting
+    local nps_conf="/usr/local/nps/conf/nps.conf"
+    sed -i -e "s/web_port/#web_port/g" ${nps_conf}
+    sed -i -e "s/web_username/#web_username/g" ${nps_conf}
+    sed -i -e "s/web_password/#web_password/g" ${nps_conf}
+    sed -i -e "s/auth_key/#auth_key/g" ${nps_conf}
+    sed -i -e "s/auth_crypt_key/#auth_crypt_key/g" ${nps_conf}
+	sed -i -e "s/http_proxy_port/#http_proxy_port/g" ${nps_conf}
+	sed -i -e "s/https_proxy_port/#https_proxy_port/g" ${nps_conf}
 
-	
+    echo "
+web_port=${WEBPORT}
+web_username=${USERNAME}
+web_password=${PWD}
+auth_key=${AUTH_KEY}
+auth_crypt_key=${AUTH_CRYPT_KEY}
+#http_proxy_port=8080
+system_info_display=true
+    " >> ${nps_conf}
 }
 
 install() {
-	download_nps
-	configure_nps
-	configure_secret
+    download_nps
+    configure_nps
+    configure_secret
 
     # startup
-	service nps start
+    service nps start
 }
 
 uninstall() {
-	
+	echo "Removing NPS service and files..."
+    service nps stop
+	rm -rf /usr/bin/nps
+	rm -rf /etc/nps
+	rm -rf /usr/local/nps
+	echo "NPS service removed."
 }
 
 install_nps
