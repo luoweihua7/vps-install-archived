@@ -228,7 +228,7 @@ configure_nps() {
     [ -z "$PWD" ] && PWD=$PWD_DEFAULT
 
     # Http port
-    local HTTPPORT_DEFAULT=8080
+    local HTTPPORT_DEFAULT=8081
     while true
     do
     echo ""
@@ -253,7 +253,7 @@ configure_nps() {
     [ -z "$VKEY" ] && PWD=$VKEY_DEFAULT
 
     # Bridge port
-    local BRIDGE_PORT=8024
+    BRIDGE_PORT=8024
 
     # Remove default setting
     local nps_conf="/etc/nps/conf/nps.conf"
@@ -279,6 +279,7 @@ web_ip=0.0.0.0
 system_info_display=true
     " > ${nps_conf}
 
+    echo ""
     add_firewall ${HTTPPORT}
     add_firewall ${WEBPORT}
     add_firewall ${BRIDGE_PORT}
@@ -294,14 +295,14 @@ install() {
 
     echo ""
     echo -e "NPS Server Info"
-    echo -e "=============================================================="
+    echo -e "================================"
     echo -e "HTTP Port is\t\033[32m$HTTPPORT\033[0m"
     echo -e "Bridge Port is\t\033[32m$BRIDGE_PORT\033[0m"
     echo -e "Web Port is\t\033[32m$WEBPORT\033[0m"
     echo -e "Username is\t\033[32m$USERNAME\033[0m"
     echo -e "Password is\t\033[32m$PWD\033[0m"
     echo -e "Public vkey is\t\033[32m$VKEY\033[0m"
-    echo -e "=============================================================="
+    echo -e "================================"
     echo ""
 }
 
