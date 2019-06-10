@@ -173,12 +173,12 @@ download_nps() {
     local nps_file="linux_amd64_server.tar.gz"
     download_link="https://github.com/cnlh/nps/releases/download/${ver}/${nps_file}"
     download "${nps_file}" "${download_link}"
-    echo -e "[${green}INFO${plain}]Unziping file..."
+    echo -e "[${green}INFO${plain}] Unziping file..."
     tar -zxf ${nps_file}
-    echo -e "[${green}INFO${plain}]Installing NPS..."
+    echo -e "[${green}INFO${plain}] Installing NPS..."
     chmod +x ./nps/nps
     ./nps/nps install
-    echo -e "[${green}INFO${plain}]NPS installed."
+    echo -e "[${green}INFO${plain}] NPS installed."
     rm -rf ./nps
     rm -rf ${nps_file}
 }
@@ -291,17 +291,29 @@ install() {
 
     # startup
     service nps start
+
+    echo ""
+    echo -e "NPS Server Info"
+    echo -e "=============================================================="
+    echo -e "HTTP Port is\t\033[32m$HTTPPORT\033[0m"
+    echo -e "Bridge Port is\t\033[32m$BRIDGE_PORT\033[0m"
+    echo -e "Web Port is\t\033[32m$WEBPORT\033[0m"
+    echo -e "Username is\t\033[32m$USERNAME\033[0m"
+    echo -e "Password is\t\033[32m$PWD\033[0m"
+    echo -e "Public vkey is\t\033[32m$VKEY\033[0m"
+    echo -e "=============================================================="
+    echo ""
 }
 
 uninstall() {
-    echo "Removing NPS service and files..."
+    echo -e "[${green}INFO${plain}] Removing NPS service and files..."
     service nps stop
     chkconfig --del nps
     rm -rf /etc/init.d/nps
     rm -rf /usr/bin/nps
     rm -rf /etc/nps
     rm -rf /usr/local/nps
-    echo "NPS service removed."
+    echo -e "[${green}INFO${plain}] NPS service removed."
 }
 
 function start() {
