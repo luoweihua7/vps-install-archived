@@ -177,7 +177,7 @@ download_nps() {
     tar -zxf ${nps_file}
 }
 
-configure_nps() {
+configure_startup_script() {
     # Config startup script
     echo ""
     echo -e "[${green}INFO${plain}] Downloading NPS startup script."
@@ -189,7 +189,7 @@ configure_nps() {
     echo -e "[${green}INFO${plain}] Startup script setup completed."
 }
 
-configure_secret() {
+configure_nps() {
     # WebUI Port
     local WEBPORT_DEFAULT=8080
     while true
@@ -202,10 +202,10 @@ configure_secret() {
         if [ $WEBPORT -ge 1 ] && [ $WEBPORT -le 65535 ]; then
             break
         else
-            echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
+            echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct web ui port."
         fi
     else
-        echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct numbers."
+        echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct web ui port."
     fi
     done
 
@@ -221,51 +221,81 @@ configure_secret() {
     read -p "Please input default password (Default: $PWD_DEFAULT): " PWD
     [ -z "$PWD" ] && PWD=$PWD_DEFAULT
 
-    # Auth KEY
-    local AUTH_KEY_DEFAULT=`fun_randstr 8`
+    # Http port
+    local HTTPPORT_DEFAULT=8080
+    while true
+    do
     echo ""
-    read -p "Please input default auth key (Default: $AUTH_KEY_DEFAULT): " AUTH_KEY
-    [ -z "$AUTH_KEY" ] && AUTH_KEY=$AUTH_KEY_DEFAULT
+    read -p "Please input WebUI port number (Default: ${HTTPPORT_DEFAULT}): " HTTPPORT
+    [ -z "$HTTPPORT" ] && HTTPPORT=$HTTPPORT_DEFAULT
+    expr $HTTPPORT + 0 &>/dev/null
+    if [ $? -eq 0 ]; then
+        if [ $HTTPPORT -ge 1 ] && [ $HTTPPORT -le 65535 ]; then
+            break
+        else
+            echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct http port."
+        fi
+    else
+        echo -e "\033[41;37m ERROR \033[0m Input error! Please input correct http port."
+    fi
+    done
 
-    local AUTH_CRYPT_KEY=`fun_randstr`
+    # Public vkey
+    local VKEY_DEFAULT=`fun_randstr`
+    echo ""
+    read -p "Please input default password (Default: $VKEY_DEFAULT): " VKEY
+    [ -z "$VKEY" ] && PWD=$VKEY_DEFAULT
+
+    # Bridge port
+    local BRIDGE_PORT=8024
 
     # Remove default setting
     local nps_conf="/usr/local/nps/conf/nps.conf"
-    sed -i -e "s/web_port/#web_port/g" ${nps_conf}
-    sed -i -e "s/web_username/#web_username/g" ${nps_conf}
-    sed -i -e "s/web_password/#web_password/g" ${nps_conf}
-    sed -i -e "s/auth_key/#auth_key/g" ${nps_conf}
-    sed -i -e "s/auth_crypt_key/#auth_crypt_key/g" ${nps_conf}
-	sed -i -e "s/http_proxy_port/#http_proxy_port/g" ${nps_conf}
-	sed -i -e "s/https_proxy_port/#https_proxy_port/g" ${nps_conf}
-
     echo "
-web_port=${WEBPORT}
+#HTTP(S) 代理
+http_proxy_ip=0.0.0.0
+http_proxy_port=${HTTPPORT}
+
+#服务端与客户端连接方式
+bridge_type=tcp/udp/kcp
+bridge_port=${BRIDGE_PORT}
+bridge_ip=0.0.0.0
+
+#客户端连接服务端密钥
+public_vkey=${VKEY}
+
+#web
 web_username=${USERNAME}
 web_password=${PWD}
-auth_key=${AUTH_KEY}
-auth_crypt_key=${AUTH_CRYPT_KEY}
-#http_proxy_port=8080
+web_port=${WEBPORT}
+web_ip=0.0.0.0
+
 system_info_display=true
-    " >> ${nps_conf}
+    " > ${nps_conf}
+
+    add_firewall ${HTTPPORT}
+    add_firewall ${WEBPORT}
+    add_firewall ${BRIDGE_PORT}
 }
 
 install() {
     download_nps
     configure_nps
-    configure_secret
+    configure_startup_script
 
     # startup
     service nps start
 }
 
 uninstall() {
-	echo "Removing NPS service and files..."
+    echo "Removing NPS service and files..."
     service nps stop
-	rm -rf /usr/bin/nps
-	rm -rf /etc/nps
-	rm -rf /usr/local/nps
-	echo "NPS service removed."
+    chkconfig --del nps
+    rm -rf /etc/init.d/nps
+    rm -rf /usr/bin/nps
+    rm -rf /etc/nps
+    rm -rf /usr/local/nps
+    echo "NPS service removed."
 }
 
 install_nps
