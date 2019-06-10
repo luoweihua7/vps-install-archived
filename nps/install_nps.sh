@@ -173,8 +173,14 @@ download_nps() {
     local nps_file="linux_amd64_server.tar.gz"
     download_link="https://github.com/cnlh/nps/releases/download/${ver}/${nps_file}"
     download "${nps_file}" "${download_link}"
-    echo "Unziping file..."
+    echo -e "[${green}INFO${plain}]Unziping file..."
     tar -zxf ${nps_file}
+    echo -e "[${green}INFO${plain}]Installing NPS..."
+    chmod +x ./nps/nps
+    ./nps/nps install
+    echo -e "[${green}INFO${plain}]NPS installed."
+    rm -rf ./nps
+    rm -rf ${nps_file}
 }
 
 configure_startup_script() {
@@ -226,7 +232,7 @@ configure_nps() {
     while true
     do
     echo ""
-    read -p "Please input WebUI port number (Default: ${HTTPPORT_DEFAULT}): " HTTPPORT
+    read -p "Please input HTTP port number (Default: ${HTTPPORT_DEFAULT}): " HTTPPORT
     [ -z "$HTTPPORT" ] && HTTPPORT=$HTTPPORT_DEFAULT
     expr $HTTPPORT + 0 &>/dev/null
     if [ $? -eq 0 ]; then
@@ -243,14 +249,14 @@ configure_nps() {
     # Public vkey
     local VKEY_DEFAULT=`fun_randstr`
     echo ""
-    read -p "Please input default password (Default: $VKEY_DEFAULT): " VKEY
+    read -p "Please input publish vkey (Default: $VKEY_DEFAULT): " VKEY
     [ -z "$VKEY" ] && PWD=$VKEY_DEFAULT
 
     # Bridge port
     local BRIDGE_PORT=8024
 
     # Remove default setting
-    local nps_conf="/usr/local/nps/conf/nps.conf"
+    local nps_conf="/etc/nps/conf/nps.conf"
     echo "
 #HTTP(S) 代理
 http_proxy_ip=0.0.0.0
