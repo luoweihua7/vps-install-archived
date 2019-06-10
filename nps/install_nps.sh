@@ -298,4 +298,18 @@ uninstall() {
     echo "NPS service removed."
 }
 
-install_nps
+function start() {
+    echo ""
+    echo "Which do you want to?"
+    echo "1. Install NPS"
+    echo "2. Uninstall NPS"
+    read -p "Please input the number and press enter.  (Press other key to exit): " num
+
+    case "$num" in
+    [1] ) (install);;
+    [2] ) (uninstall);;
+    *) echo "Bye~~~";;
+    esac
+}
+
+start
