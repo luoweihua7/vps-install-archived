@@ -1,14 +1,14 @@
 {
   "inbounds": [
     {
-      "port": PORT,
+      "port": V2RAY_PORT,
       "listen": "127.0.0.1",
       "tag": "vmess-in",
       "protocol": "vmess",
       "settings": {
         "clients": [
           {
-            "id": "UUID",
+            "id": "V2RAY_UUID",
             "alterId": 64
           }
         ]
@@ -16,7 +16,7 @@
       "streamSettings": {
         "network": "ws",
         "wsSettings": {
-          "path": "/PATH/"
+          "path": "/V2RAY_PATH"
         }
       }
     }
