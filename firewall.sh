@@ -41,7 +41,6 @@ prompt() {
         done
 
         PORT="${port_num}"
-        echo "[DEBUG] Port number is : ${PORT}"
     else
       echo -e "\033[41;37m WARNING \033[0m Firewalld looks like not installed, please manually set it if necessary."
     fi
