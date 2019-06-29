@@ -270,15 +270,16 @@ v2ray_uninstall() {
   done
 
   # Remove nginx config
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to remove nginx domain config (Just config file): " REMOVE_CONF
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to remove nginx domain config (Just config file)? Y/n: " REMOVE_CONF
+  [ -z "${REMOVE_CONF}" ] && REMOVE_CONF="Y"
   case ${REMOVE_CONF} in
     [yY][eE][sS]|[yY])
       stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input domain or subdomain (eg: www.example.com):" REMOVE_DOMAIN
       rm -rf ${nginx_conf_dir}/${REMOVE_DOMAIN}.conf
-      service nginx restart
 
       # Remove SSl certificate and acms.sh files
-      stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to remove SSL certificate (include acme.sh): " REMOVE_SSL
+      stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to remove SSL certificate (include acme.sh)? Y/n: " REMOVE_SSL
+      [ -z "${REMOVE_SSL}" ] && REMOVE_SSL="Y"
       case ${REMOVE_CONF} in
         [yY][eE][sS]|[yY])
           rm -rf ${v2ray_ssl_dir}/${REMOVE_DOMAIN}.crt
@@ -290,6 +291,8 @@ v2ray_uninstall() {
         *)
           ;;
       esac
+
+      service nginx restart
       ;;
     *)
       ;;
