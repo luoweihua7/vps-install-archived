@@ -193,6 +193,7 @@ show_qrcode() {
 
 show_information() {
   echo ""
+  local LOCAL_IP=`curl -4 -s ip.sb`
 
   # Show old config backup info
   if [ -z ${v2ray_conf_backup} ]; then
