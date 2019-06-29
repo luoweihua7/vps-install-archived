@@ -23,6 +23,8 @@ v2ray_conf_dir="/etc/v2ray"
 nginx_conf_dir="/etc/nginx/conf.d"
 v2ray_conf="${v2ray_conf_dir}/config.json"
 v2ray_ssl_dir="/home/conf/nginx"
+
+nginx_conf=""
 v2ray_conf_backup=""
 
 V2RAY_DOMAIN=""
@@ -142,7 +144,7 @@ ssl_install() {
     exit 3
   else
     mkdir -p ${v2ray_ssl_dir}
-    local nginx_conf="${nginx_conf_dir}/${V2RAY_DOMAIN}.conf"
+    nginx_conf="${nginx_conf_dir}/${V2RAY_DOMAIN}.conf"
     wget --no-check-certificate --no-cache -cq -t3 "${git_url}/v2ray/config/nginx_template.conf" -O ${nginx_conf}
 
     sed -i -e "s/V2RAY_DOMAIN/${V2RAY_DOMAIN}/g" ${nginx_conf}
