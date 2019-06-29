@@ -129,9 +129,11 @@ ssl_install() {
   echo -e "Installing Let's Encrypt SSL certificate..."
   curl  https://get.acme.sh | sh
 
+  # Input Aliyun AccessKey
   echo ""
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input Aliyun AccessKey ID:" access_key
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input Aliyun Access Key Secret:" access_secret
+  echo ""
 
   export Ali_Key="${access_key}"
   export Ali_Secret="${access_secret}"
@@ -169,9 +171,9 @@ v2ray_config_install() {
 
   wget --no-check-certificate --no-cache -cq -t3 "${git_url}/v2ray/config/config.json" -O ${v2ray_conf}
 
-  sed -i -e "s/V2RAY_UUID/${V2RAY_UUID}/g" ${nginx_conf}
-  sed -i -e "s/V2RAY_PORT/${V2RAY_PORT}/g" ${nginx_conf}
-  sed -i -e "s/V2RAY_PATH/${V2RAY_PATH}/g" ${nginx_conf}
+  sed -i -e "s/V2RAY_UUID/${V2RAY_UUID}/g" ${v2ray_conf}
+  sed -i -e "s/V2RAY_PORT/${V2RAY_PORT}/g" ${v2ray_conf}
+  sed -i -e "s/V2RAY_PATH/${V2RAY_PATH}/g" ${v2ray_conf}
 }
 
 firewall_config() {
@@ -208,7 +210,7 @@ show_information() {
   echo -e "Domain\t${green} ${V2RAY_DOMAIN} ${plain}"
   echo -e "Port\t${green} ${V2RAY_PORT} ${plain}"
   echo -e "UUID\t${green} ${V2RAY_UUID} ${plain}"
-  echo -e "Path\t${green} ${V2RAY_PATH} ${plain}"
+  echo -e "Path\t${green} /${V2RAY_PATH} ${plain}"
   echo -e "alterId\t${green} 64 ${plain}"
   echo -e "Network\t${green} ws ${plain}"
   echo ""
