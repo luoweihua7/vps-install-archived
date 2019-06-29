@@ -72,6 +72,12 @@ remove_firewall() {
 }
 
 v2ray_config() {
+  # prepare package
+  local lsof_installed=`rpm -qa | grep firewalld | wc -l`
+  if [ ${lsof_installed} -ne 0 ]; then
+    yum install lsof -y &>/dev/null
+  fi
+
   echo ""
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input domain(eg: www.example.com):" v2domain
 
@@ -104,7 +110,7 @@ v2ray_config() {
 
 preinstall() {
   echo -e "Installing dependency packages..."
-  yum install wget lsof crontabs bc unzip ntpdate socat nc -y
+  yum install wget crontabs bc unzip ntpdate socat nc -y
 
   systemctl stop ntp &>/dev/null
   ntpdate time.nist.gov
@@ -151,7 +157,7 @@ ssl_install() {
 v2ray_config_install() {
   # Backup old config file
   local config_exists=`grep "path" ${v2ray_conf} | wc -l`
-  if [ config_exists -ne 0 ]; then
+  if [ ${config_exists} -ne 0 ]; then
     local path_conf=`grep "path" ${v2ray_conf} | awk {'print $2'} | sed 's/\"\///g' | sed 's/\"//g'`
     v2ray_conf_backup="${v2ray_conf_dir}/conf.${path_conf}.json"
     mv -f ${v2ray_conf} ${v2ray_conf_backup}
