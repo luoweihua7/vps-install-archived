@@ -81,29 +81,17 @@ v2ray_config() {
   fi
 
   echo ""
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input domain(eg: www.example.com):" v2domain
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input subdomain (eg: sub.example.com):" v2domain
 
-  local default_port=`shuf -i 10000-39999 -n 1`
+  local v2port=4443
   while true
   do
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input v2ray server port (default: ${default_port}): " v2port
-  [ -z "${v2port}" ] && v2port=${default_port}
-  expr ${v2port} + 0 &>/dev/null
-  if [ $? -eq 0 ]; then
-    if [ ${v2port} -ge 1 ] && [ ${v2port} -le 65535 ]; then
-      if [[ 0 -eq `lsof -i:"${v2port}" | wc -l` ]];then
-        break
-      else
-        echo -e "${ERROR} Server port ${v2port} already in use. please change another one."
-        lsof -i:"${v2port}"
-        echo ""
-      fi
-    else
-      echo -e "${ERROR} Input error! Please input correct port numbers (1-65535)."
+    local rand_port=`shuf -i 10000-59999 -n 1`
+    if [[ 0 -eq `lsof -i:"${rand_port}" | wc -l` ]];then
+      v2port="${rand_port}"
+      expr ${v2port} + 0 &>/dev/null
+      break
     fi
-  else
-    echo -e "${ERROR} Input error! Please input correct port numbers (1-65535)."
-  fi
   done
 
   V2RAY_DOMAIN="${v2domain}"
@@ -131,8 +119,8 @@ ssl_install() {
 
   # Input Aliyun AccessKey
   echo ""
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input Aliyun AccessKey ID:" access_key
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input Aliyun Access Key Secret:" access_secret
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input Aliyun AccessKey ID: " access_key
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input Aliyun Access Key Secret: " access_secret
   echo ""
 
   export Ali_Key="${access_key}"
@@ -179,7 +167,6 @@ v2ray_config_install() {
 firewall_config() {
   add_firewall 80
   add_firewall 443
-  add_firewall ${V2RAY_PORT}
 }
 
 startup_v2ray() {
@@ -200,7 +187,7 @@ show_information() {
   local LOCAL_IP=`curl -4 -s ip.sb`
 
   # Show old config backup info
-  if [ -z ${v2ray_conf_backup} ]; then
+  if [ ! -z ${v2ray_conf_backup} ]; then
     echo -e "${INFO} Old V2Ray config file backup in ${green} ${v2ray_conf_backup} ${plain}"
     echo ""
   fi
@@ -218,7 +205,6 @@ show_information() {
   # ClashX config
   echo -e "${blue_bg}   ClashX   ${plain}"
   echo -e "${green}- { name: "V2Ray", type: vmess, server: ${V2RAY_DOMAIN}, port: 443, uuid: ${V2RAY_UUID}, alterId: 64, cipher: auto, network: ws, ws-path: /${V2RAY_PATH}, tls: true }${plain}"
-  echo -e "Please add the configuration manually"
   echo ""
 
   # Shadowrocket config
@@ -229,6 +215,8 @@ show_information() {
   # Quantumult config
   echo -e "${blue_bg}   Quantmult   ${plain}"
   echo -e "${green}vmess://`echo -n 'V2Ray = vmess, '${LOCAL_IP}', 443, none, "'${V2RAY_UUID}'", over-tls=true, tls-host='${V2RAY_DOMAIN}', certificate=0, obfs=ws, obfs-path="/'${V2RAY_PATH}'", obfs-header="Host: '${V2RAY_DOMAIN}'"' | base64 -w 0`${plain}"
+  echo ""
+  echo -e "Please add the configuration manually"
   echo ""
 }
 
@@ -255,28 +243,12 @@ v2ray_uninstall() {
 
   echo -e "${green} V2Ray Core uninstalled.${plain}"
 
-  while true
-  do
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input v2ray server port: " REMOVE_PORT
-  expr ${REMOVE_PORT} + 0 &>/dev/null
-  if [ $? -eq 0 ]; then
-    if [ ${REMOVE_PORT} -ge 1 ] && [ ${REMOVE_PORT} -le 65535 ]; then
-      remove_firewall ${REMOVE_PORT}
-      break
-    else
-      echo -e "${ERROR} Input error! Please input correct port numbers (1-65535)."
-    fi
-  else
-    echo -e "${ERROR} Input error! Please input correct port numbers (1-65535)."
-  fi
-  done
-
   # Remove nginx config
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to remove nginx domain config (Just config file)? Y/n: " REMOVE_CONF
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to remove nginx domain config (Only conf file)? Y/n: " REMOVE_CONF
   [ -z "${REMOVE_CONF}" ] && REMOVE_CONF="Y"
   case ${REMOVE_CONF} in
     [yY][eE][sS]|[yY])
-      stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input domain or subdomain (eg: www.example.com):" REMOVE_DOMAIN
+      stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input websocket subdomain (eg: sub.example.com):" REMOVE_DOMAIN
       rm -rf ${nginx_conf_dir}/${REMOVE_DOMAIN}.conf
 
       # Remove SSl certificate and acms.sh files

@@ -33,5 +33,5 @@ sh v2ray.sh
 1. 自动强制安装 (--force) [V2Ray-Core](https://github.com/v2ray/v2ray-core)
 2. 使用教程 [toutyrater 的白话文配置 WebSocket+TLS+Web](https://toutyrater.github.io/advanced/wss_and_web.html) 一样的配置信息
 3. 使用 [acme.sh](https://acme.sh) 和 阿里云Access Key获取并设置子域名的SSL证书
-3. 替换输入的内容：`子域名`, `端口`, 并使用随机生成的 `UUID` 和 TLS 的 `path`，以及固定的SSL端口 `443` 来配置V2Ray的 `config.json` 文件
+3. 替换输入的内容：`子域名`, 并使用随机生成的 V2Ray `端口`, `UUID` 和 TLS 的 `path`，以及固定的 Websocket 和 SSL 端口 `443` 来配置V2Ray的 `config.json` 文件
 4. 根据配置生成 ClashX，Shadowrocket，Quantumult 的配置
