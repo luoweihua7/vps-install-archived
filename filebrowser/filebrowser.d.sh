@@ -10,7 +10,7 @@
 
 start() {
   echo -n "Starting filebrowser service..."
-  nohup /usr/local/bin/filebrowser -d DB_PATH > /dev/null 2>&1 &
+  nohup /usr/local/bin/filebrowser -d DBCONF > /dev/null 2>&1 &
   echo ""
 }
 

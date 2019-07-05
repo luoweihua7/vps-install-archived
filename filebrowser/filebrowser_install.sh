@@ -69,12 +69,13 @@ nginx_config() {
         if [ 1 -eq ${nginx_mode} ];then
           # Subpath mode
           if [ -e ${NG_CONF} ]; then
-            stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input subpath (default: file) " baseurl
+            stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input subpath (default: files) " baseurl
             if [ -z "${baseurl}" ]; then
-              FB_BASEURL="file"
+              FB_BASEURL="files"
             else
               FB_BASEURL=${baseurl}
             fi
+            echo ""
             sed -i "/error_page *404/i\    location /${FB_BASEURL} {\n        proxy_pass http://127.0.0.1:${FB_WEB_PORT};\n    }\n" ${NG_CONF}
           else
             echo "Nginx default config file (${NG_CONF}) not exist."
@@ -119,8 +120,7 @@ fb_config() {
     stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser port to listen on (default: ${rand_port}): " web_port
     [ -z "${web_port}" ] && web_port=${rand_port}
     if [[ 0 -eq `lsof -i:"${rand_port}" | wc -l` ]];then
-      FB_WEB_PORT="${web_port}"
-      expr ${FB_WEB_PORT} + 0 &>/dev/null
+      expr ${web_port} + 0 &>/dev/null
       break
     else
       echo -e "${WARN} Port ${web_port} looks like running service, try another one..."
@@ -134,7 +134,7 @@ fb_config() {
   echo ""
   local default_user="admin"
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser username (default: ${default_user}): " username
-  [ -z "${username}" ] && web_port=${default_user}
+  [ -z "${username}" ] && username=${default_user}
 
   echo ""
   local default_pwd=`fun_randstr`
@@ -171,14 +171,15 @@ config_filebrowser() {
   /usr/local/bin/filebrowser -d ${DB_PATH} users add ${FB_USER} ${FB_PWD} --perm.admin &>/dev/null
   echo "Filebrowser setup completed."
 
-  echo "Installing auto startup script..."
+  echo "Install filebrowser service..."
   local script_path="/etc/init.d/filebrowser"
   wget --no-check-certificate --no-cache -cq -t3 "${GIT_URL}/filebrowser/filebrowser.d.sh" -O ${script_path}
-  sed -i -e 's/DB_PATH/${DB_PATH}/g' ${script_path}
+  sleep 1
+  sed -i -e "s/DBCONF/${DB_PATH}/g" ${script_path}
   chmod 755 ${script_path}
   chkconfig --add filebrowser
   chkconfig filebrowser on
-  echo "Auto script installed."
+  echo "Service installed."
 
   case ${IS_NGINX} in
     [yY][eE][sS]|[yY])
@@ -237,13 +238,15 @@ uninstall() {
       fi
     fi
 
-    echo "Removing files"
+    echo "Removing relate files"
     rm -rf /usr/local/bin/filebrowser
 
     systemctl stop filebrowser
     systemctl disable filebrowser
     rm -rf /etc/systemd/system/filebrowser.service
+    rm -rf /etc/init.d/filebrowser
     systemctl daemon-reload
+    echo -e "${WARN} Please remove nginx config manually."
     echo "Filebrowser uninstalled."
   fi
 }
