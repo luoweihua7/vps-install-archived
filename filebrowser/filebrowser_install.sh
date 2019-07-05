@@ -52,6 +52,7 @@ add_firewall() {
 }
 
 nginx_config() {
+  local LOCAL_IP=`curl -4 -s ip.sb`
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to configure nginx? Y/n: " IS_NGINX
   [ -z "${IS_NGINX}" ] && IS_NGINX="Y"
 
@@ -76,7 +77,8 @@ nginx_config() {
               FB_BASEURL=${baseurl}
             fi
             echo ""
-            sed -i "/error_page *404/i\    location /${FB_BASEURL} {\n        proxy_pass http://127.0.0.1:${FB_WEB_PORT};\n    }\n" ${NG_CONF}
+            sed -i "/error_page *404 *\/404.html/i\    location /${FB_BASEURL} {\n        proxy_pass http://127.0.0.1:${FB_WEB_PORT};\n    }\n" ${NG_CONF}
+            FB_URL="http://${LOCAL_IP}/${FB_BASEURL}"
           else
             echo "Nginx default config file (${NG_CONF}) not exist."
           fi
@@ -89,6 +91,8 @@ nginx_config() {
           wget --no-check-certificate --no-cache -cq -t3 "${GIT_URL}/filebrowser/nginx.conf" -O ${nginx_conf}
           sed -i -e "s/FB_DOMAIN/${hostname}/g" ${nginx_conf}
           sed -i -e "s/FB_WEB_PORT/${FB_WEB_PORT}/g" ${nginx_conf}
+
+          FB_URL="http://${hostname}"
           break
         else
           echo -e "${WARN} Port ${web_port} looks like running service, try another one..."
@@ -96,6 +100,7 @@ nginx_config() {
       done
       ;;
     *)
+      FB_URL="http://${LOCAL_IP}:${FB_WEB_PORT}"
       ;;
   esac
 }
@@ -173,10 +178,10 @@ config_filebrowser() {
 
   echo "Install filebrowser service..."
   local script_path="/etc/init.d/filebrowser"
-  wget --no-check-certificate --no-cache -cq -t3 "${GIT_URL}/filebrowser/filebrowser.d.sh" -O ${script_path}
+  wget --no-check-certificate --no-cache -cq -t3 "${GIT_URL}/filebrowser/filebrowser.d.sh" -O /etc/init.d/filebrowser
   sleep 1
-  sed -i -e "s/DBCONF/${DB_PATH}/g" ${script_path}
-  chmod 755 ${script_path}
+  sed -i -e "s/DBCONF/${DB_PATH}/g" /etc/init.d/filebrowser
+  chmod 755 /etc/init.d/filebrowser
   chkconfig --add filebrowser
   chkconfig filebrowser on
   echo "Service installed."
@@ -191,8 +196,6 @@ config_filebrowser() {
 }
 
 show_information() {
-  local LOCAL_IP=`curl -4 -s ip.sb`
-
   echo ""
   echo -e "${blue_bg}   Filebrowser info   ${plain}"
   echo -e "Config Directory\t${green} ${FB_CONF_DIR} ${plain}"
