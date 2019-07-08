@@ -181,6 +181,8 @@ download_nps() {
     echo -e "[${green}INFO${plain}] NPS installed."
     rm -rf ./nps
     rm -rf ${nps_file}
+
+    VERSION="${ver}"
 }
 
 configure_startup_script() {
@@ -296,6 +298,7 @@ install() {
     echo ""
     echo -e "NPS Server Info"
     echo -e "================================"
+    echo -e "Server Ver is\t\033[32m$VERSION\033[0m"
     echo -e "HTTP Port is\t\033[32m$HTTPPORT\033[0m"
     echo -e "Bridge Port is\t\033[32m$BRIDGE_PORT\033[0m"
     echo -e "Web Port is\t\033[32m$WEBPORT\033[0m"
