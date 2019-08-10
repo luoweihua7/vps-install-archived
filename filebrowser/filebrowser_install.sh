@@ -77,7 +77,7 @@ nginx_config() {
               FB_BASEURL=${baseurl}
             fi
             echo ""
-            sed -i "/error_page *404 *\/404.html/i\    location /${FB_BASEURL} {\n        proxy_pass http://127.0.0.1:${FB_WEB_PORT};\n    }\n" ${NG_CONF}
+            sed -i "/error_page *404 */i\    location /${FB_BASEURL} {\n        proxy_pass http://127.0.0.1:${FB_WEB_PORT};\n    }\n" ${NG_CONF}
             FB_URL="http://${LOCAL_IP}/${FB_BASEURL}"
           else
             echo "Nginx default config file (${NG_CONF}) not exist."
@@ -107,8 +107,9 @@ nginx_config() {
 
 fb_config() {
   # prepare package
-  local lsof_installed=`rpm -qa | grep firewalld | wc -l`
+  local lsof_installed=`rpm -qa | grep lsof | wc -l`
   if [ ${lsof_installed} -ne 0 ]; then
+    echo "Installing require dependents, please wait..."
     yum install lsof -y &>/dev/null
   fi
 
@@ -134,7 +135,15 @@ fb_config() {
 
   echo ""
   # Database file path
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser ROOT path (eg: /home/wwwroot): " root_dir
+  while true
+  do
+    stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser ROOT path (eg: /home/wwwroot): " root_dir
+    if [ -z "$root_dir" ]; then
+      echo "ROOT path required, please input "
+    else
+      break
+    fi
+  done
 
   echo ""
   local default_user="admin"
@@ -169,8 +178,8 @@ config_filebrowser() {
   /usr/local/bin/filebrowser -d ${DB_PATH} config set --port ${FB_WEB_PORT} &>/dev/null
   /usr/local/bin/filebrowser -d ${DB_PATH} config set --locale zh-cn &>/dev/null
   /usr/local/bin/filebrowser -d ${DB_PATH} config set --root ${FB_ROOT_DIR} &>/dev/null
-  if [ -z "${FB_BASEURL}" ]; then
-    /usr/local/bin/filebrowser -d ${DB_PATH} config set --baseurl ${FB_BASEURL} &>/dev/null
+  if [ -n "${FB_BASEURL}" ]; then
+    /usr/local/bin/filebrowser -d ${DB_PATH} config set --baseurl /${FB_BASEURL} &>/dev/null
   fi
   /usr/local/bin/filebrowser -d ${DB_PATH} config set --log /var/log/filebrowser.log &>/dev/null
   /usr/local/bin/filebrowser -d ${DB_PATH} users add ${FB_USER} ${FB_PWD} --perm.admin &>/dev/null
@@ -180,7 +189,7 @@ config_filebrowser() {
   local script_path="/etc/init.d/filebrowser"
   wget --no-check-certificate --no-cache -cq -t3 "${GIT_URL}/filebrowser/filebrowser.d.sh" -O /etc/init.d/filebrowser
   sleep 1
-  sed -i -e "s/DBCONF/${DB_PATH}/g" /etc/init.d/filebrowser
+  sed -i -e "s|DBCONF|${DB_PATH}|g" /etc/init.d/filebrowser
   chmod 755 /etc/init.d/filebrowser
   chkconfig --add filebrowser
   chkconfig filebrowser on
@@ -203,7 +212,7 @@ show_information() {
   echo -e "Root Directory\t\t${green} ${FB_ROOT_DIR} ${plain}"
   echo -e "Access URL\t\t${green} ${FB_URL} ${plain}"
   echo -e "Username\t\t${green} ${FB_USER} ${plain}"
-  echo -e "Password\t\t${green} /${FB_PWD} ${plain}"
+  echo -e "Password\t\t${green} ${FB_PWD} ${plain}"
   echo ""
 }
 
