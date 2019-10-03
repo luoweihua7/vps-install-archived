@@ -6,7 +6,22 @@ export PATH
 is_need_token="0"
 private_token=""
 
-function get_os_version(){
+# Color
+red='\033[41;37m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+blue='\033[0;34m'
+blue_bg='\033[44;37m'
+plain='\033[0m'
+
+# Message
+INFO="${green}[INFO]${plain}"
+WARN="${yellow}[WARN]${plain}"
+ERROR="${red}[ERROR]${plain}"
+SUCCESS="${green}[SUCCESS]${plain}"
+READ_INFO=$'\e[31m[INFO]\e[0m'
+
+function get_os_version() {
     if [[ -s /etc/redhat-release ]];then
         grep -oE  "[0-9.]+" /etc/redhat-release
     else    
@@ -14,7 +29,7 @@ function get_os_version(){
     fi    
 }
 
-function sys_version(){
+function sys_version() {
     local code=$1
     local version="`get_os_version`"
     local main_ver=${version%%.*}
@@ -54,13 +69,16 @@ function install_aria2c() {
     tar zxf /tmp/aria2.tar.gz -C /home/conf/
     rm -rf /tmp/aria2.tar.gz
 
-    echo "Moving aria2c to correct directory"
+    echo "Installing aria2c..."
     mv -f /home/conf/aria2/aria2c /usr/local/bin
     mv -f /home/conf/aria2/aria2.sh /etc/init.d/aria2
     chmod 755 /etc/init.d/aria2
 
     chkconfig --add aria2
     chkconfig aria2 on
+
+    # Configure aria2c complete notify
+    setup_aria2c
 
     if sys_version 6; then
         service aria2 start
@@ -99,6 +117,36 @@ function install_aria2c() {
 
     echo ""
     echo "All done!"
+}
+
+function setup_aria2c() {
+    echo ""
+
+    stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to enable download task completed notification? Y/n: " ENABLE_NOTIFY
+    [ -z "${ENABLE_NOTIFY}" ] && ENABLE_NOTIFY="Y"
+    case ${ENABLE_NOTIFY} in
+        [yY][eE][sS]|[yY])
+            # Enable notify
+            echo ""
+            while true
+            do
+            stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input IFTTT webhook key (Visit https://ifttt.com/maker_webhooks page, and then click \"Document\" button, copy webhook key and paste here): " IFTTT_KEY
+            if [ -z ${IFTTT_KEY} ]; then
+                echo -e "\033[41;37m ERROR \033[0m IFTTT webhook key required!!!"
+                echo ""
+                continue
+            fi
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /home/conf/aria2/on-download-complete.sh
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /home/conf/aria2/on-download-error.sh
+            break
+            done
+            ;;
+        *)
+            # disable notify
+            sed -i -e "s/on-download-complete/#on-download-complete/g" /home/conf/aria2/aria2.conf
+            sed -i -e "s/on-download-error/#on-download-error/g" /home/conf/aria2/aria2.conf
+            ;;
+    esac
 }
 
 function install_ariang() {
@@ -180,7 +228,7 @@ function uninstall_aria2c() {
 function start() {
     echo ""
     echo "Which do you want to?"
-    echo "1. Install aria2c [Include Web UI]"
+    echo "1. Install aria2c [Include AriaNG Web UI]"
     echo "2. Uninstall aria2c"
     echo "3. Install AriaNg Web UI"
     read -p "Please input the number and press enter.  (Press other key to exit): " num
