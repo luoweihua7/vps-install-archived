@@ -81,7 +81,17 @@ net.ipv4.tcp_congestion_control = hybla" >> /etc/sysctl.conf
     echo "BBR setup finished."
 }
 
+update_wget() {
+    wget_ver="wget-1.20.3"
+    wget https://ftp.gnu.org/gnu/wget/${wget_ver}.tar.gz
+    tar xvf ${wget_ver}.tar.gz
+    cd ${wget_ver}
+    ./configure --prefix=/usr --sysconfdir=/etc --with-ssl=openssl
+    make && make install
+}
+
 setup() {
+    update_wget
     uninstall_aliyun
     setup_firewall
     setup_ssh
