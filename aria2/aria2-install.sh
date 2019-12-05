@@ -40,7 +40,22 @@ function sys_version() {
     fi
 }
 
+fun_randstr(){
+    index=0
+    strRandomPass=""
+    for i in {a..z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {A..Z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {0..9}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {1..16}; do strRandomPass="$strRandomPass${arr[$RANDOM%$index]}"; done
+    echo $strRandomPass
+}
+
 function install_aria2c() {
+    echo ""
+    default_password=`fun_randstr`
+    read -p "Please input secret token (Default: $default_password): " TOKEN
+    [ -z "$TOKEN" ] && TOKEN=$default_password
+
     mkdir /home/conf/aria2 -p
     mkdir /home/downloads -p
     mkdir /home/www -p
@@ -73,6 +88,17 @@ function install_aria2c() {
     mv -f /home/conf/aria2/aria2c /usr/local/bin
     mv -f /home/conf/aria2/aria2.sh /etc/init.d/aria2
     chmod 755 /etc/init.d/aria2
+
+    # modify secret token
+    sed -i -e "s/__ARIA2_TOKEN__/${TOKEN}/g" /home/conf/aria2/aria2.conf
+    sed -i -e "s/__ARIA2_TOKEN__/${TOKEN}/g" /home/conf/aria2/update-bt-trackers.sh
+    chmod +x /home/conf/aria2/update-bt-trackers.sh
+
+    # add cron task
+    # */30 * * * * /home/conf/aria2/update-bt-trackers.sh
+    # CRON_CFG="/tmp/aria2_cron.conf"
+    # crontab -l > $CRON_CFG && echo "*/30 * * * * /home/conf/aria2/update-bt-trackers.sh >> /var/log/aria2/update-bt-trackers.log" >> $CRON_CFG && crontab $CRON_CFG && rm -f $CRON_CFG
+    # service crond restart
 
     chkconfig --add aria2
     chkconfig aria2 on
