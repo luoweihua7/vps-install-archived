@@ -91,7 +91,7 @@ install_redis_epel() {
 install_redis() {
     rpm -Uvh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     rpm -Uvh http://rpms.remirepo.net/enterprise/7/remi/x86_64/remi-release-7.7-2.el7.remi.noarch.rpm
-    yum --enablerepo=remi install redis
+    yum --enablerepo=remi install redis -y
 
     RANDOM=`fun_randstr`
     REDIS_PWD=`echo "$RANDOM" | sha256sum | awk '{print $1}'`
