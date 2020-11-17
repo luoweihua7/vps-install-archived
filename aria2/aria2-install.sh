@@ -122,6 +122,22 @@ function install_aria2c() {
 function setup_aria2c() {
     echo ""
 
+    # Setup download path
+    read -p $'[\e\033[0;32mINFO\033[0m] Please input download path (default: /home/downloads): ' aria2_download_path
+    if [ -z ${aria2_download_path} ]; then
+        aria2_download_path="/home/downloads"
+    fi
+    mkdir -p $aria2_download_path
+    sed -i -e "s/\/home\/downloads/${aria2_download_path}/g" /home/conf/aria2/aria2.conf
+
+    # Setup secret
+    read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
+    if [ -z ${aria2_secret} ]; then
+        aria2_secret="qwertyuiop"
+    fi
+    sed -i -e "s/qwertyuiop/${aria2_secret}/g" /home/conf/aria2/aria2.conf
+
+    # IFTTT notification
     stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to enable download task completed notification? Y/n: " ENABLE_NOTIFY
     [ -z "${ENABLE_NOTIFY}" ] && ENABLE_NOTIFY="Y"
     case ${ENABLE_NOTIFY} in
