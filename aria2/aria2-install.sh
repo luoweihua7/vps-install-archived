@@ -128,7 +128,7 @@ function setup_aria2c() {
         aria2_download_path="/home/downloads"
     fi
     mkdir -p $aria2_download_path
-    sed -i -e "s/\/home\/downloads/${aria2_download_path}/g" /home/conf/aria2/aria2.conf
+    sed -i -e "s/\/home\/downloads/${aria2_download_path//\//\\/}/g" /home/conf/aria2/aria2.conf
 
     # Setup secret
     read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
