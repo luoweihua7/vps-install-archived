@@ -61,9 +61,11 @@ function install_aria2c() {
 
     echo "Downloading aria2 package file, please wait..."
     if [ "${is_need_token}" == "1" ]; then
-        wget --header="Authorization: token ${private_token}" --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz >> /dev/null 2>&1
+        # wget --header="Authorization: token ${private_token}" --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz >> /dev/null 2>&1
+        curl -# -o /tmp/aria2.tar.gz -L https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -H "Authorization: token ${private_token}"
     else
-        wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz >> /dev/null 2>&1
+        # wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz >> /dev/null 2>&1
+        curl -# -o /tmp/aria2.tar.gz -L https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz
     fi
     echo "Unzip file..."
     # aria2c file download from https://github.com/q3aql/aria2-static-builds
@@ -82,11 +84,11 @@ function install_aria2c() {
     setup_aria2c
 
     if sys_version 6; then
-        service aria2 start
+        service aria2 start >> /dev/null 2>&1
     elif sys_version 7; then
-        systemctl daemon-reload
-        systemctl enable aria2
-        systemctl start aria2
+        systemctl daemon-reload >> /dev/null 2>&1
+        systemctl enable aria2 >> /dev/null 2>&1
+        systemctl start aria2 >> /dev/null 2>&1
     fi
 
     echo ""
@@ -103,7 +105,7 @@ function install_aria2c() {
     local download_domain=""
     while true
     do
-    read -p $'[\e\033[0;32mINFO\033[0m] Please input AriaNg WebUI domain (eg. www.example.com): ' aria2_domain
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input AriaNg WebUI domain (eg. www.example.com): ' aria2_domain
     if [ -z ${aria2_domain} ]; then
         echo -e "\033[41;37m ERROR \033[0m Domain required!!!"
         continue
@@ -117,14 +119,14 @@ function install_aria2c() {
     service nginx restart
 
     echo ""
-    echo "All done!"
+    echo "============ All done! ============"
 }
 
 function setup_aria2c() {
     echo ""
 
     # Setup download path
-    read -p $'[\e\033[0;32mINFO\033[0m] Please input download path (default: /home/downloads): ' aria2_download_path
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input download path (default: /home/downloads): ' aria2_download_path
     if [ -z ${aria2_download_path} ]; then
         aria2_download_path="/home/downloads"
     fi
@@ -132,22 +134,23 @@ function setup_aria2c() {
     sed -i -e "s/\/home\/downloads/${aria2_download_path//\//\\/}/g" /home/conf/aria2/aria2.conf
 
     # Setup secret
-    read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
     if [ -z ${aria2_secret} ]; then
         aria2_secret="qwertyuiop"
     fi
     sed -i -e "s/qwertyuiop/${aria2_secret}/g" /home/conf/aria2/aria2.conf
 
     # IFTTT notification
-    stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Would you want to enable download task completed notification? Y/n: " ENABLE_NOTIFY
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Would you want to enable download task completed notification? Y/n: ' ENABLE_NOTIFY
     [ -z "${ENABLE_NOTIFY}" ] && ENABLE_NOTIFY="Y"
     case ${ENABLE_NOTIFY} in
         [yY][eE][sS]|[yY])
             # Enable notify
             echo ""
+            echo "Visit https://ifttt.com/maker_webhooks page, and then click \"Document\" button, you will find webhook key."
             while true
             do
-            stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input IFTTT webhook key (Visit https://ifttt.com/maker_webhooks page, and then click \"Document\" button, copy webhook key and paste here): " IFTTT_KEY
+            stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input IFTTT webhook key: ' IFTTT_KEY
             if [ -z ${IFTTT_KEY} ]; then
                 echo -e "\033[41;37m ERROR \033[0m IFTTT webhook key required!!!"
                 echo ""
@@ -171,7 +174,7 @@ function install_ariang() {
     echo "Which type do you want to install? "
     echo "1. release"
     echo "2. master"
-    read -p "Please enter your choice (1, 2. default [1]): " INSTALLTYPE
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please enter your choice (1, 2. default [1]): ' INSTALLTYPE
     [ -z "$INSTALLTYPE" ] && INSTALLTYPE="1"
 
     case "$INSTALLTYPE" in
@@ -188,7 +191,7 @@ function install_ariang() {
 }
 
 function install_ariang_master() {
-    yum install -y git -q
+    yum install -y git -q >> /dev/null 2>&1
     git clone https://github.com/mayswind/AriaNg.git /tmp/AriaNg
     npm i -g gulp bower
     cd /tmp/AriaNg
@@ -205,12 +208,14 @@ function install_ariang_master() {
 }
 
 function install_ariang_release() {
-    yum install -y unzip -q
-    echo "Checking last version..."
+    echo ""
+    yum install -y unzip -q >> /dev/null 2>&1
+    echo "Checking last AriaNg version..."
     aria_ng_path=`wget -qO- https://github.com/mayswind/AriaNg/releases | grep 'releases/download/' | head -n 1 | awk '{print $2}' | sed 's/href=\"//g' | sed 's/\"//g'`
     echo "Last version: https://github.com${aria_ng_path}"
-    echo "Downloading file..."
-    wget --no-check-certificate --progress=bar:force https://github.com${aria_ng_path} -O /tmp/AriaNg.zip >> /dev/null 2>&1
+    echo "Downloading AriaNg package file..."
+    # wget --no-check-certificate --progress=bar:force https://github.com${aria_ng_path} -O /tmp/AriaNg.zip >> /dev/null 2>&1
+    curl -# -o /tmp/AriaNg.zip -L https://github.com${aria_ng_path}
     echo "Unzip file..."
     unzip -u -q /tmp/AriaNg.zip -d /home/www/aria2
     echo "Clean up."
@@ -249,7 +254,7 @@ function start() {
     echo "1. Install aria2c [Include AriaNG Web UI]"
     echo "2. Uninstall aria2c"
     echo "3. Install AriaNg Web UI"
-    read -p "Please input the number and press enter.  (Press other key to exit): " num
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input the number and press enter.  (Press other key to exit): ' num
 
     case "$num" in
     [1] ) (install_aria2c);;
