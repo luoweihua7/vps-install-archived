@@ -41,6 +41,7 @@ function sys_version() {
 }
 
 function install_aria2c() {
+    echo ""
     mkdir /home/conf/aria2 -p
     mkdir /home/downloads -p
     mkdir /home/www -p
@@ -58,11 +59,11 @@ function install_aria2c() {
         done
     fi
 
-    echo "Downloading file..."
+    echo "Downloading aria2 package file, please wait..."
     if [ "${is_need_token}" == "1" ]; then
-        wget --header="Authorization: token ${private_token}" --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz
+        wget --header="Authorization: token ${private_token}" --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz >> /dev/null 2>&1
     else
-        wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz
+        wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2.tar.gz -O /tmp/aria2.tar.gz >> /dev/null 2>&1
     fi
     echo "Unzip file..."
     # aria2c file download from https://github.com/q3aql/aria2-static-builds
@@ -89,7 +90,7 @@ function install_aria2c() {
     fi
 
     echo ""
-    echo "Aria2 installed."
+    echo "============ Aria2 service installed. ============"
 
     echo ""
     echo "Setup AriaNg..."
@@ -102,7 +103,7 @@ function install_aria2c() {
     local download_domain=""
     while true
     do
-    read -p $'[\e\033[0;32mINFO\033[0m] Input domain please (eg. www.example.com): ' aria2_domain
+    read -p $'[\e\033[0;32mINFO\033[0m] Please input AriaNg WebUI domain (eg. www.example.com): ' aria2_domain
     if [ -z ${aria2_domain} ]; then
         echo -e "\033[41;37m ERROR \033[0m Domain required!!!"
         continue
@@ -209,7 +210,7 @@ function install_ariang_release() {
     aria_ng_path=`wget -qO- https://github.com/mayswind/AriaNg/releases | grep 'releases/download/' | head -n 1 | awk '{print $2}' | sed 's/href=\"//g' | sed 's/\"//g'`
     echo "Last version: https://github.com${aria_ng_path}"
     echo "Downloading file..."
-    wget --no-check-certificate --progress=bar:force https://github.com${aria_ng_path} -O /tmp/AriaNg.zip
+    wget --no-check-certificate --progress=bar:force https://github.com${aria_ng_path} -O /tmp/AriaNg.zip >> /dev/null 2>&1
     echo "Unzip file..."
     unzip -u -q /tmp/AriaNg.zip -d /home/www/aria2
     echo "Clean up."
@@ -218,6 +219,7 @@ function install_ariang_release() {
 }
 
 function uninstall_aria2c() {
+    echo ""
     echo "Removing files..."
 
     if sys_version 6; then
