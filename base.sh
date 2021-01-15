@@ -82,12 +82,18 @@ net.ipv4.tcp_congestion_control = hybla" >> /etc/sysctl.conf
 }
 
 update_wget() {
-    wget_ver="wget-1.20.3"
-    wget https://ftp.gnu.org/gnu/wget/${wget_ver}.tar.gz
-    tar xvf ${wget_ver}.tar.gz
-    cd ${wget_ver}
+    yum install -y openssl-devel openssl
+    #wget_ver="wget-1.20.3"
+    #wget https://ftp.gnu.org/gnu/wget/${wget_ver}.tar.gz
+    # tar xvf ${wget_ver}.tar.gz
+    # cd ${wget_ver}
+
+    wget http://mirrors.ustc.edu.cn/gnu/wget/wget-latest.tar.gz
+    mkdir /tmp/wget-latest
+    tar xvf wget-latest.tar.gz -C /tmp/wget-latest --strip-components 1
     ./configure --prefix=/usr --sysconfdir=/etc --with-ssl=openssl
     make && make install
+    rm -rf /tmp/wget-latest
 }
 
 setup() {
