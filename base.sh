@@ -91,8 +91,10 @@ update_wget() {
     wget http://mirrors.ustc.edu.cn/gnu/wget/wget-latest.tar.gz
     mkdir /tmp/wget-latest
     tar xvf wget-latest.tar.gz -C /tmp/wget-latest --strip-components 1
+    cd /tmp/wget-latest
     ./configure --prefix=/usr --sysconfdir=/etc --with-ssl=openssl
     make && make install
+    cd ~/
     rm -rf /tmp/wget-latest
 }
 
