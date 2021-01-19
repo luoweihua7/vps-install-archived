@@ -76,7 +76,7 @@ net.ipv4.tcp_congestion_control = hybla" >> /etc/sysctl.conf
 
 update_wget() {
     echo "Installing require dependents, please wait..."
-    yum install -y openssl-devel openssl
+    yum install -y openssl-devel openssl git unzip
 
     wget http://mirrors.ustc.edu.cn/gnu/wget/wget-latest.tar.gz
     mkdir /tmp/wget-latest
@@ -87,6 +87,35 @@ update_wget() {
     cd ~/
     rm -rf /tmp/wget-latest
     rm -rf wget-latest.tar.gz
+}
+
+install_nginx() {
+    rpm -ivh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+    yum install nginx -y
+    systemctl enable nginx.service
+
+    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/nginx.sh
+    sh nginx.sh
+}
+
+install_ss() {
+    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/shadowsocks/shadowsocks-libev.sh
+    sh shadowsocks-libev.sh
+}
+
+install_v2ray() {
+    wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/v2ray/v2ray.sh
+    sh v2ray.sh
+}
+
+install_filebrowser() {
+    wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/filebrowser/filebrowser_install.sh
+    sh filebrowser_install.sh
+}
+
+install_aria() {
+    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2-install.sh
+    sh aria2-install.sh
 }
 
 setup() {
