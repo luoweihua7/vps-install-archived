@@ -131,8 +131,8 @@ add_upstream() {
     sed -i -e "s/_PORT_/${upstream_port}/g" /etc/nginx/conf.d/${hostname}.conf
 
     if [ "${base_auth}" == "yes" ]; then
-        mkdir /home/conf/auth -p
-        htpasswd -bc /home/conf/auth/${hostname}.db ${username} ${password}
+        mkdir /data/conf/auth -p
+        htpasswd -bc /data/conf/auth/${hostname}.db ${username} ${password}
         sed -i -e "s/#auth_basic/auth_basic/g" /etc/nginx/conf.d/${hostname}.conf
     fi
 

@@ -22,7 +22,7 @@ git_url="https://raw.githubusercontent.com/luoweihua7/vps-install/master"
 v2ray_conf_dir="/etc/v2ray"
 nginx_conf_dir="/etc/nginx/conf.d"
 v2ray_conf="${v2ray_conf_dir}/config.json"
-v2ray_ssl_dir="/home/conf/nginx"
+v2ray_ssl_dir="/data/conf/nginx"
 
 nginx_conf=""
 v2ray_conf_backup=""

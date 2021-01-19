@@ -27,13 +27,13 @@ function progressfilter () {
 }
 
 function add_config() {
-    mkdir /home/conf/bbr -p
+    mkdir /data/conf/bbr -p
 
     echo ""
     read -p "Input ports you want to speed up (eg. 8080 8081 8082): " PORTS </dev/tty
     for d in $PORTS
     do          
-    cat <<EOF >> /home/conf/bbr/rinetd-bbr.conf
+    cat <<EOF >> /data/conf/bbr/rinetd-bbr.conf
 0.0.0.0 $d 0.0.0.0 $d 
 EOF
     done
@@ -59,14 +59,14 @@ IFACE=\$(ip -4 addr | awk '{if (\$1 ~ /inet/ && \$NF ~ /^[ve]/) {a=\$NF}} END{pr
 case "\$1" in
 start)
   echo -n "Starting rinetd"
-  /usr/bin/rinetd-bbr -f -c /home/conf/bbr/rinetd-bbr.conf raw \${IFACE} > /dev/null 2>\&1 &
+  /usr/bin/rinetd-bbr -f -c /data/conf/bbr/rinetd-bbr.conf raw \${IFACE} > /dev/null 2>\&1 &
   ;;
 stop)
   echo -n "Shutting down rinetd "
   killall -q rinetd-bbr ;;
 restart)
   killall -q rinetd-bbr
-  /usr/bin/rinetd-bbr -f -c /home/conf/bbr/rinetd-bbr.conf raw \${IFACE} > /dev/null 2>\&1 &
+  /usr/bin/rinetd-bbr -f -c /data/conf/bbr/rinetd-bbr.conf raw \${IFACE} > /dev/null 2>\&1 &
   ;;
 *)
   echo "Usage: rinetd {start|stop|restart}"
@@ -100,7 +100,7 @@ function uninstall() {
     echo "Removing files..."
     rm -rf /usr/bin/rinetd-bbr
     rm -rf /etc/init.d/rinetd
-    rm -rf /home/conf/bbr
+    rm -rf /data/conf/bbr
     echo "All done!"
     echo ""
 }

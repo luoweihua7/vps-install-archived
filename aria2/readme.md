@@ -2,9 +2,9 @@
 
 ### Aria2 安装程序包
 
-配置存储在 `/home/conf/aria2`<br>
-下载文件存储在 `/home/downloads`<br>
-AriaNG 网页存储在 `/home/www`<br>
+配置存储在 `/data/conf/aria2`<br>
+下载文件存储在 `/data/downloads`<br>
+AriaNG 网页存储在 `/data/www`<br>
 aria2c 执行允许存储在 `/usr/local/bin`<br>
 aria2 脚本存储在 `/etc/init.d`<br>
 同时会创建nginx的目录规则到 `/etc/nginx/conf.d/` 中

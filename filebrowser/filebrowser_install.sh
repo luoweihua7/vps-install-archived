@@ -24,7 +24,7 @@ NG_CONF="/etc/nginx/conf.d/default.conf"
 GIT_URL="https://raw.githubusercontent.com/luoweihua7/vps-install/master"
 
 FB_DB="filebrowser.db"
-FB_CONF_DIR="/home/conf/filebrowser"
+FB_CONF_DIR="/data/conf/filebrowser"
 FB_BASEURL=""
 FB_WEB_PORT="80"
 FB_USER="admin"
@@ -137,7 +137,7 @@ fb_config() {
   # Database file path
   while true
   do
-    stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser ROOT path (eg: /home/wwwroot): " root_dir
+    stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser ROOT path (eg: /data/wwwroot): " root_dir
     if [ -z "$root_dir" ]; then
       echo "ROOT path required, please input "
     else

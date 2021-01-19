@@ -42,9 +42,9 @@ function sys_version() {
 
 function install_aria2c() {
     echo ""
-    mkdir /home/conf/aria2 -p
-    mkdir /home/downloads -p
-    mkdir /home/www -p
+    mkdir /data/conf/aria2 -p
+    mkdir /data/downloads -p
+    mkdir /data/www -p
 
     if [ "${is_need_token}" == "1" ] && [ -z ${private_token} ]; then
         while true
@@ -69,12 +69,12 @@ function install_aria2c() {
     fi
     echo "Unzip file..."
     # aria2c file download from https://github.com/q3aql/aria2-static-builds
-    tar zxf /tmp/aria2.tar.gz -C /home/conf/
+    tar zxf /tmp/aria2.tar.gz -C /data/conf/
     rm -rf /tmp/aria2.tar.gz
 
     echo "Installing aria2c..."
-    mv -f /home/conf/aria2/aria2c /usr/local/bin
-    mv -f /home/conf/aria2/aria2.sh /etc/init.d/aria2
+    mv -f /data/conf/aria2/aria2c /usr/local/bin
+    mv -f /data/conf/aria2/aria2.sh /etc/init.d/aria2
     chmod 755 /etc/init.d/aria2
 
     chkconfig --add aria2
@@ -114,7 +114,7 @@ function install_aria2c() {
     break
     done
 
-    mv -f /home/conf/aria2/nginx_domain.conf /etc/nginx/conf.d/${download_domain}.conf
+    mv -f /data/conf/aria2/nginx_domain.conf /etc/nginx/conf.d/${download_domain}.conf
     sed -i -e "s/_SERVER_NAME_/${download_domain}/g" /etc/nginx/conf.d/${download_domain}.conf
     service nginx restart
 
@@ -126,19 +126,19 @@ function setup_aria2c() {
     echo ""
 
     # Setup download path
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input download path (default: /home/downloads): ' aria2_download_path
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input download path (default: /data/downloads): ' aria2_download_path
     if [ -z ${aria2_download_path} ]; then
-        aria2_download_path="/home/downloads"
+        aria2_download_path="/data/downloads"
     fi
     mkdir -p $aria2_download_path
-    sed -i -e "s/\/home\/downloads/${aria2_download_path//\//\\/}/g" /home/conf/aria2/aria2.conf
+    sed -i -e "s/\/data\/downloads/${aria2_download_path//\//\\/}/g" /data/conf/aria2/aria2.conf
 
     # Setup secret
     stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
     if [ -z ${aria2_secret} ]; then
         aria2_secret="qwertyuiop"
     fi
-    sed -i -e "s/qwertyuiop/${aria2_secret}/g" /home/conf/aria2/aria2.conf
+    sed -i -e "s/qwertyuiop/${aria2_secret}/g" /data/conf/aria2/aria2.conf
 
     # IFTTT notification
     stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Would you want to enable download task completed notification? Y/n: ' ENABLE_NOTIFY
@@ -156,15 +156,15 @@ function setup_aria2c() {
                 echo ""
                 continue
             fi
-            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /home/conf/aria2/on-download-complete.sh
-            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /home/conf/aria2/on-download-error.sh
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /data/conf/aria2/on-download-complete.sh
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /data/conf/aria2/on-download-error.sh
             break
             done
             ;;
         *)
             # disable notify
-            sed -i -e "s/on-download-complete/#on-download-complete/g" /home/conf/aria2/aria2.conf
-            sed -i -e "s/on-download-error/#on-download-error/g" /home/conf/aria2/aria2.conf
+            sed -i -e "s/on-download-complete/#on-download-complete/g" /data/conf/aria2/aria2.conf
+            sed -i -e "s/on-download-error/#on-download-error/g" /data/conf/aria2/aria2.conf
             ;;
     esac
 }
@@ -200,9 +200,9 @@ function install_ariang_master() {
     gulp clean build
     npm remove -g gulp bower
 
-    mkdir /home/www/aria2 -p
-    mv /tmp/AriaNg/dist/* /home/www/aria2 -f
-    cd /home
+    mkdir /data/www/aria2 -p
+    mv /tmp/AriaNg/dist/* /data/www/aria2 -f
+    cd /data
     rm -rf /tmp/AriaNg/
     echo "AriaNg installed."
 }
@@ -217,7 +217,7 @@ function install_ariang_release() {
     # wget --no-check-certificate --progress=bar:force https://github.com${aria_ng_path} -O /tmp/AriaNg.zip >> /dev/null 2>&1
     curl -# -o /tmp/AriaNg.zip -L https://github.com${aria_ng_path}
     echo "Unzip file..."
-    unzip -u -q /tmp/AriaNg.zip -d /home/www/aria2
+    unzip -u -q /tmp/AriaNg.zip -d /data/www/aria2
     echo "Clean up."
     rm -rf /tmp/AriaNg.zip
     echo "AriaNg installed."
@@ -238,8 +238,8 @@ function uninstall_aria2c() {
     fi
 
     rm -rf /usr/local/bin/aria2c
-    rm -rf /home/conf/aria2
-	rm -rf /home/www/aria2
+    rm -rf /data/conf/aria2
+	rm -rf /data/www/aria2
     rm -rf /etc/nginx/conf.d/dl.*.conf
 
     service nginx restart

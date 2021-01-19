@@ -8,7 +8,7 @@
 # Short-Description: shadowsocks-libev
 ### END INIT INFO
 
-conf_file_path="/home/conf/shadowsocks"
+conf_file_path="/data/conf/shadowsocks"
 
 start() {
   if [ -d $conf_file_path ]; then
