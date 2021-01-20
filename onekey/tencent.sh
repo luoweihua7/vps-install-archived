@@ -101,14 +101,6 @@ install_nginx() {
     yum install nginx -y
     systemctl enable nginx.service
     service nginx start
-
-    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/nginx.sh
-    sh nginx.sh
-}
-
-install_acme() {
-    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/acme/acme-install.sh
-    sh acme-install.sh
 }
 
 setup() {
@@ -120,7 +112,6 @@ setup() {
     config_bashrc
 
     install_nginx
-    install_acme
 }
 
 setup
