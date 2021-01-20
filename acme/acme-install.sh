@@ -20,6 +20,16 @@ READ_INFO=$'\e[31m[INFO]\e[0m'
 NGINX_CERT_DIR="/etc/nginx/certificates"
 DNS_SERVICE=""
 
+fun_randstr(){
+    index=0
+    strRandomPass=""
+    for i in {a..z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {A..Z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {0..9}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {1..16}; do strRandomPass="$strRandomPass${arr[$RANDOM%$index]}"; done
+    echo $strRandomPass
+}
+
 acme_install() {
   echo -e "${INFO} Installing acme.sh service..."
   curl  https://get.acme.sh | sh
@@ -101,7 +111,8 @@ acme_add_domain() {
   echo ""
 
   # regist wildcard domain
-  ~/.acme.sh/acme.sh --issue --dns ${DNS_SERVICE} -d ${add_domain} -d *.${add_domain} --yes-I-know-dns-manual-mode-enough-go-ahead-please --force
+  random_record=`fun_randstr`
+  ~/.acme.sh/acme.sh --issue --dns ${DNS_SERVICE} -d ${add_domain} -d *.${add_domain} -d *.${random_record}.${add_domain} --yes-I-know-dns-manual-mode-enough-go-ahead-please --force
 
   # Check certificate exist
   if [ ! -f ~/.acme.sh/${add_domain}/${add_domain}.cer ]; then
