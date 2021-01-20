@@ -2,6 +2,8 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
+GITHUB_URL="https://raw.githubusercontent.com/luoweihua7/vps-install/master/"
+
 uninstall_qcloud() {
     echo "Uninstall Tencent Cloud services..."
     sh /usr/local/qcloud/stargate/admin/uninstall.sh >> /dev/null 2>&1
@@ -98,29 +100,15 @@ install_nginx() {
     rpm -ivh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
     yum install nginx -y
     systemctl enable nginx.service
+    service nginx start
 
     wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/nginx.sh
     sh nginx.sh
 }
 
-install_ss() {
-    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/shadowsocks/shadowsocks-libev.sh
-    sh shadowsocks-libev.sh
-}
-
-install_v2ray() {
-    wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/v2ray/v2ray.sh
-    sh v2ray.sh
-}
-
-install_filebrowser() {
-    wget --no-check-certificate https://raw.githubusercontent.com/luoweihua7/vps-install/master/filebrowser/filebrowser_install.sh
-    sh filebrowser_install.sh
-}
-
-install_aria() {
-    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/aria2/aria2-install.sh
-    sh aria2-install.sh
+install_acme() {
+    wget --no-check-certificate --no-cache https://raw.githubusercontent.com/luoweihua7/vps-install/master/acme/acme-install.sh
+    sh acme-install.sh
 }
 
 setup() {
@@ -130,6 +118,9 @@ setup() {
     setup_ssh
     setup_tcp_hybla
     config_bashrc
+
+    install_nginx
+    install_acme
 }
 
 setup
