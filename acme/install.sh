@@ -47,4 +47,44 @@ acme_install() {
   fi
 }
 
-acme_install
+acme_add_domain() {
+  echo -e "Installing Let's Encrypt SSL certificate..."
+  curl  https://get.acme.sh | sh
+
+  # Input Aliyun AccessKey
+  echo ""
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input your domain (eg. domain.com): " add_domain
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input certificate folder (eg. /etc/nginx/cert): " ng_cert_dir
+  echo ""
+
+  ~/.acme.sh/acme.sh --issue --dns dns_ali -d ${add_domain}
+
+  # Check certificate exist
+  if [ ! -f ~/.acme.sh/${add_domain}/${add_domain}.cer ]; then
+    echo -e "${ERROR} Generate certificate failure!!!"
+    exit 3
+  else
+    mkdir -p ${ng_cert_dir}
+
+    # Install certificate to target folder
+    ~/.acme.sh/acme.sh --installcert -d ${add_domain} --fullchainpath ${ng_cert_dir}/${add_domain}.crt --keypath ${ng_cert_dir}/${add_domain}.key --reloadcmd "service nginx force-reload"
+  fi
+}
+
+
+main() {
+  echo ""
+  echo -e "Which one do you want to do?"
+  echo "1. Install acme.sh"
+  echo "2. Add domain"
+  echo ""
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Input the number and press enter. (Press any other key to exit) " num
+
+  case "${num}" in
+    [1] ) (acme_install);;
+    [2] ) (acme_add_domain);;
+    *) echo "Bye~~~";;
+  esac
+}
+
+main
