@@ -121,6 +121,7 @@ main() {
   echo -e "Which one do you want to do?"
   echo "1. Install acme.sh"
   echo "2. Add domain"
+  echo "3. Refresh domains"
   echo ""
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Input the number and press enter. (Press any other key to exit) " num
 
@@ -130,6 +131,10 @@ main() {
       choose_service
       acme_configure_check
       acme_add_domain
+    ;;
+    [3] )
+      LOGIN_USER=`users`
+      ~/.acme.sh/acme.sh --cron --home "/${LOGIN_USER}/.acme.sh" --force
     ;;
     *) echo "Bye~~~";;
   esac
