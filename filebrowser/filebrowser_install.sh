@@ -19,7 +19,8 @@ READ_INFO=$'\e[31m[INFO]\e[0m'
 
 # Path
 IS_NGINX=""
-NG_CONF="/etc/nginx/conf.d/default.conf"
+NG_CONF_DIR="/etc/nginx/conf.d/"
+NG_CONF="${NG_CONF_DIR}default.conf"
 
 GIT_URL="https://raw.githubusercontent.com/luoweihua7/vps-install/master"
 
@@ -88,9 +89,9 @@ nginx_config() {
           stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input subdomain (eg. filebrowser.example.com) " hostname
 
           local nginx_conf="${hostname}.conf"
-          wget --no-check-certificate --no-cache -cq -t3 "${GIT_URL}/filebrowser/nginx.conf" -O ${nginx_conf}
-          sed -i -e "s/FB_DOMAIN/${hostname}/g" ${nginx_conf}
-          sed -i -e "s/FB_WEB_PORT/${FB_WEB_PORT}/g" ${nginx_conf}
+          wget --no-check-certificate --no-cache -cq -t3 "${GIT_URL}/filebrowser/nginx.conf" -O ${NG_CONF_DIR}${nginx_conf}
+          sed -i -e "s/FB_DOMAIN/${hostname}/g" ${NG_CONF_DIR}${nginx_conf}
+          sed -i -e "s/FB_WEB_PORT/${FB_WEB_PORT}/g" ${NG_CONF_DIR}${nginx_conf}
 
           FB_URL="http://${hostname}"
           break
@@ -166,7 +167,7 @@ fb_config() {
 }
 
 install_core() {
-  curl -fsSL https://filebrowser.xyz/get.sh | bash
+  curl -fsSL https://filebrowser.org/get.sh | bash
 }
 
 config_filebrowser() {
