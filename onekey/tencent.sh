@@ -89,6 +89,11 @@ update_wget() {
     rm -rf wget-latest.tar.gz
 }
 
+config_bashrc() {
+  echo "
+export PS1=\"\[\033[36m\]\u\[\033[m\]@\[\033[32m\]\h:\[\033[33;1m\]\w\[\033[m\]\$ \"" >> /etc/bashrc
+}
+
 install_nginx() {
     rpm -ivh http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
     yum install nginx -y
@@ -124,6 +129,7 @@ setup() {
     setup_firewall
     setup_ssh
     setup_tcp_hybla
+    config_bashrc
 }
 
 setup
