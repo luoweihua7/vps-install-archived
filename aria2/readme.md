@@ -2,7 +2,7 @@
 
 ### Aria2 安装程序包
 
-配置存储在 `/data/conf/aria2`<br>
+配置存储在 `/usr/local/etc/conf/aria2`<br>
 下载文件存储在 `/data/downloads`<br>
 AriaNG 网页存储在 `/data/www`<br>
 aria2c 执行允许存储在 `/usr/local/bin`<br>

@@ -21,6 +21,8 @@ ERROR="${red}[ERROR]${plain}"
 SUCCESS="${green}[SUCCESS]${plain}"
 READ_INFO=$'\e[31m[INFO]\e[0m'
 
+ARIA_CONF_DIR="/usr/local/etc"
+
 function get_os_version() {
     if [[ -s /etc/redhat-release ]];then
         grep -oE  "[0-9.]+" /etc/redhat-release
@@ -42,7 +44,7 @@ function sys_version() {
 
 function install_aria2c() {
     echo ""
-    mkdir /data/conf/aria2 -p
+    mkdir ${ARIA_CONF_DIR}/aria2 -p
     mkdir /data/downloads -p
     mkdir /data/www -p
 
@@ -69,12 +71,12 @@ function install_aria2c() {
     fi
     echo "Unzip file..."
     # aria2c file download from https://github.com/q3aql/aria2-static-builds
-    tar zxf /tmp/aria2.tar.gz -C /data/conf/
+    tar zxf /tmp/aria2.tar.gz -C ${ARIA_CONF_DIR}
     rm -rf /tmp/aria2.tar.gz
 
     echo "Installing aria2c..."
-    mv -f /data/conf/aria2/aria2c /usr/local/bin
-    mv -f /data/conf/aria2/aria2.sh /etc/init.d/aria2
+    mv -f ${ARIA_CONF_DIR}/aria2/aria2c /usr/local/bin
+    mv -f ${ARIA_CONF_DIR}/aria2/aria2.sh /etc/init.d/aria2
     chmod 755 /etc/init.d/aria2
 
     chkconfig --add aria2
@@ -114,7 +116,7 @@ function install_aria2c() {
     break
     done
 
-    mv -f /data/conf/aria2/nginx_domain.conf /etc/nginx/conf.d/${download_domain}.conf
+    mv -f ${ARIA_CONF_DIR}/aria2/nginx_domain.conf /etc/nginx/conf.d/${download_domain}.conf
     sed -i -e "s/_SERVER_NAME_/${download_domain}/g" /etc/nginx/conf.d/${download_domain}.conf
     service nginx restart
 
@@ -131,14 +133,15 @@ function setup_aria2c() {
         aria2_download_path="/data/downloads"
     fi
     mkdir -p $aria2_download_path
-    sed -i -e "s/\/data\/downloads/${aria2_download_path//\//\\/}/g" /data/conf/aria2/aria2.conf
+    sed -i -e "s/ARIA_DOWNLOAD_DIR/${aria2_download_path//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
+    sed -i -e "s/ARIA_CONF_DIR/${ARIA_CONF_DIR}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
 
     # Setup secret
     stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
     if [ -z ${aria2_secret} ]; then
         aria2_secret="qwertyuiop"
     fi
-    sed -i -e "s/qwertyuiop/${aria2_secret}/g" /data/conf/aria2/aria2.conf
+    sed -i -e "s/ARIA_SECRET/${aria2_secret}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
 
     # IFTTT notification
     stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Would you want to enable download task completed notification? Y/n: ' ENABLE_NOTIFY
@@ -156,15 +159,15 @@ function setup_aria2c() {
                 echo ""
                 continue
             fi
-            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /data/conf/aria2/on-download-complete.sh
-            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" /data/conf/aria2/on-download-error.sh
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" ${ARIA_CONF_DIR}/aria2/on-download-complete.sh
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" ${ARIA_CONF_DIR}/aria2/on-download-error.sh
             break
             done
             ;;
         *)
             # disable notify
-            sed -i -e "s/on-download-complete/#on-download-complete/g" /data/conf/aria2/aria2.conf
-            sed -i -e "s/on-download-error/#on-download-error/g" /data/conf/aria2/aria2.conf
+            sed -i -e "s/on-download-complete/#on-download-complete/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
+            sed -i -e "s/on-download-error/#on-download-error/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
             ;;
     esac
 }
@@ -238,7 +241,7 @@ function uninstall_aria2c() {
     fi
 
     rm -rf /usr/local/bin/aria2c
-    rm -rf /data/conf/aria2
+    rm -rf ${ARIA_CONF_DIR}/aria2
 	rm -rf /data/www/aria2
     rm -rf /etc/nginx/conf.d/dl.*.conf
 

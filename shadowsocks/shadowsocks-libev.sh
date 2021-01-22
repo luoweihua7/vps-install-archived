@@ -2,7 +2,7 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
 export PATH
 
-conf_file_path="/data/conf/shadowsocks"
+conf_file_path="/usr/local/etc/shadowsocks"
 epel_centos6="https://copr.fedorainfracloud.org/coprs/librehat/shadowsocks/repo/epel-6/librehat-shadowsocks-epel-6.repo"
 epel_centos7="https://copr.fedorainfracloud.org/coprs/librehat/shadowsocks/repo/epel-7/librehat-shadowsocks-epel-7.repo"
 
@@ -271,8 +271,11 @@ install_shadowsocks_old_version() {
 install_shadowsocks_script() {
     echo ""
     echo -e "[${green}INFO${plain}] Downloading shadowsocks startup script."
-    download "/etc/init.d/shadowsocks" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/shadowsocks/shadowsocks.d.sh" "${is_need_token}"
-    chmod 755 /etc/init.d/shadowsocks
+    local init_script_file="/etc/init.d/shadowsocks"
+    download ${init_script_file} "https://raw.githubusercontent.com/luoweihua7/vps-install/master/shadowsocks/shadowsocks.d.sh" "${is_need_token}"
+    chmod 755 ${init_script_file}
+    sed -i -e "s/SS_CONF_DIR/${conf_file_path}/g" ${init_script_file}
+
     echo -e "[${green}INFO${plain}] Configuring startup script."
     chkconfig --add shadowsocks
     chkconfig shadowsocks on
