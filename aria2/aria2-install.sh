@@ -134,7 +134,7 @@ function setup_aria2c() {
     fi
     mkdir -p $aria2_download_path
     sed -i -e "s/ARIA_DOWNLOAD_DIR/${aria2_download_path//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
-    sed -i -e "s/ARIA_CONF_DIR/${ARIA_CONF_DIR}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
+    sed -i -e "s/ARIA_CONF_DIR/${ARIA_CONF_DIR//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
 
     # Setup secret
     stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
