@@ -7,6 +7,8 @@ red='\033[41;37m'
 green='\033[0;32m'
 yellow='\033[0;33m'
 blue='\033[0;34m'
+purple='\033[0;35m'
+cyan='\033[0;36m'
 blue_bg='\033[44;37m'
 plain='\033[0m'
 
@@ -25,7 +27,7 @@ NG_CONF="${NG_CONF_DIR}default.conf"
 GIT_URL="https://raw.githubusercontent.com/luoweihua7/vps-install/master"
 
 FB_DB="filebrowser.db"
-FB_CONF_DIR="/data/conf/filebrowser"
+FB_CONF_DIR="/usr/local/etc/filebrowser"
 FB_BASEURL=""
 FB_WEB_PORT="80"
 FB_USER="admin"
@@ -61,8 +63,8 @@ nginx_config() {
     [yY][eE][sS]|[yY])
       echo ""
       echo -e "Select the access mode:"
-      echo "1. Use subpath like www.domain.com/pathto"
-      echo "2. Use subdomain like file.domain.com."
+      echo -e "1. Use pathname like www.domain.com/${cyan}pathname${plain}"
+      echo -e "2. Use subdomain like ${cyan}subdomain${plain}.domain.com."
 
       while true
       do
@@ -71,7 +73,7 @@ nginx_config() {
         if [ 1 -eq ${nginx_mode} ];then
           # Subpath mode
           if [ -e ${NG_CONF} ]; then
-            stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input subpath (default: files) " baseurl
+            stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input pathname (default: files) " baseurl
             if [ -z "${baseurl}" ]; then
               FB_BASEURL="files"
             else
@@ -110,31 +112,21 @@ fb_config() {
   # prepare package
   local lsof_installed=`rpm -qa | grep lsof | wc -l`
   if [ ${lsof_installed} -ne 0 ]; then
-    echo "Installing require dependents, please wait..."
+    # echo "Installing require dependents, please wait..."
     yum install lsof -y &>/dev/null
   fi
 
-  echo ""
-  # Database file path
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser database path (eg: /etc): " conf_dir
-
   # Listen port
   echo ""
-  local v2port=4443
   while true
   do
-    local rand_port=`shuf -i 10000-59999 -n 1`
-    stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser port to listen on (default: ${rand_port}): " web_port
-    [ -z "${web_port}" ] && web_port=${rand_port}
-    if [[ 0 -eq `lsof -i:"${rand_port}" | wc -l` ]];then
+    web_port=`shuf -i 10000-59999 -n 1`
+    if [[ 0 -eq `lsof -i:"${web_port}" | wc -l` ]];then
       expr ${web_port} + 0 &>/dev/null
       break
-    else
-      echo -e "${WARN} Port ${web_port} looks like running service, try another one..."
     fi
   done
 
-  echo ""
   # Database file path
   while true
   do
@@ -146,24 +138,22 @@ fb_config() {
     fi
   done
 
-  echo ""
   local default_user="admin"
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser username (default: ${default_user}): " username
   [ -z "${username}" ] && username=${default_user}
 
-  echo ""
   local default_pwd=`fun_randstr`
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser password (default: ${default_pwd}): " password
   [ -z "${password}" ] && password=${default_pwd}
 
-  echo ""
-
-  # Set config
-  FB_CONF_DIR=${conf_dir}
+  # filebrowser config
   FB_WEB_PORT=${web_port}
   FB_ROOT_DIR=${root_dir}
   FB_USER=${username}
   FB_PWD=${password}
+
+  # Nginx config
+  nginx_config
 }
 
 install_core() {
@@ -219,7 +209,6 @@ show_information() {
 
 install() {
   fb_config
-  nginx_config
   install_core
   config_filebrowser
 
@@ -231,37 +220,37 @@ install() {
 }
 
 uninstall() {
-  echo ""
-  # Database file path
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input filebrowser database path (eg: /etc): " conf_dir
+  conf_dir="${FB_CONF_DIR}"
   if [ -z "${conf_dir}" ]; then
-    echo "Database file path error. exit!"
+    echo "Database file path not exists!"
   else
     if [ -e "${conf_dir}/${FB_DB}" ]; then
       rm -rf ${conf_dir}
     fi
-
-    echo "Stopping filebrowser service..."
-    pid=`ps aux | grep "/usr/local/bin/filebrowser" | grep -v "grep" | awk '{print $2}'`
-    if [ ! $pid ]; then
-      echo "Service filebrowser not runing."
-    else 
-      if ps -p $pid > /dev/null ; then
-        kill -9 $pid
-      fi
-    fi
-
-    echo "Removing relate files"
-    rm -rf /usr/local/bin/filebrowser
-
-    systemctl stop filebrowser
-    systemctl disable filebrowser
-    rm -rf /etc/systemd/system/filebrowser.service
-    rm -rf /etc/init.d/filebrowser
-    systemctl daemon-reload
-    echo -e "${WARN} Please remove nginx config manually."
-    echo "Filebrowser uninstalled."
   fi
+
+  echo "Stopping filebrowser service..."
+  pid=`ps aux | grep "/usr/local/bin/filebrowser" | grep -v "grep" | awk '{print $2}'`
+  if [ ! $pid ]; then
+    echo "Service filebrowser not runing."
+  else 
+    if ps -p $pid > /dev/null ; then
+      kill -9 $pid
+    fi
+  fi
+
+  echo "Removing filebrowser files..."
+  rm -rf /usr/local/bin/filebrowser
+
+  chkconfig filebrowser off
+  chkconfig --del filebrowser
+  systemctl stop filebrowser
+  systemctl disable filebrowser
+  rm -rf /etc/systemd/system/filebrowser.service
+  rm -rf /etc/init.d/filebrowser
+  systemctl daemon-reload
+  echo -e "${WARN} Please remove nginx config manually."
+  echo "Filebrowser uninstalled."
 }
 
 main() {
