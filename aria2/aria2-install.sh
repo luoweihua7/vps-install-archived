@@ -22,6 +22,8 @@ SUCCESS="${green}[SUCCESS]${plain}"
 READ_INFO=$'\e[31m[INFO]\e[0m'
 
 ARIA_CONF_DIR="/usr/local/etc"
+ARIA_DOWNLOAD_DIR="/data/downloads"
+ARIA_WWW_DIR="/data/www/aria2"
 
 function get_os_version() {
     if [[ -s /etc/redhat-release ]];then
@@ -45,8 +47,6 @@ function sys_version() {
 function install_aria2c() {
     echo ""
     mkdir ${ARIA_CONF_DIR}/aria2 -p
-    mkdir /data/downloads -p
-    mkdir /data/www -p
 
     if [ "${is_need_token}" == "1" ] && [ -z ${private_token} ]; then
         while true
@@ -118,6 +118,8 @@ function install_aria2c() {
 
     mv -f ${ARIA_CONF_DIR}/aria2/nginx_domain.conf /etc/nginx/conf.d/${download_domain}.conf
     sed -i -e "s/_SERVER_NAME_/${download_domain}/g" /etc/nginx/conf.d/${download_domain}.conf
+    sed -i -e "s/ARIA_WWW_DIR/${ARIA_WWW_DIR//\//\\/}/g" /etc/nginx/conf.d/${download_domain}.conf
+    sed -i -e "s/ARIA_DOWNLOAD_DIR/${ARIA_DOWNLOAD_DIR//\//\\/}/g" /etc/nginx/conf.d/${download_domain}.conf
     service nginx restart
 
     echo ""
@@ -132,8 +134,10 @@ function setup_aria2c() {
     if [ -z ${aria2_download_path} ]; then
         aria2_download_path="/data/downloads"
     fi
-    mkdir -p $aria2_download_path
-    sed -i -e "s/ARIA_DOWNLOAD_DIR/${aria2_download_path//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
+
+    ARIA_DOWNLOAD_DIR=${aria2_download_path}
+    mkdir -p ${ARIA_DOWNLOAD_DIR}
+    sed -i -e "s/ARIA_DOWNLOAD_DIR/${ARIA_DOWNLOAD_DIR//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
     sed -i -e "s/ARIA_CONF_DIR/${ARIA_CONF_DIR//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
 
     # Setup secret
@@ -203,8 +207,14 @@ function install_ariang_master() {
     gulp clean build
     npm remove -g gulp bower
 
-    mkdir /data/www/aria2 -p
-    mv /tmp/AriaNg/dist/* /data/www/aria2 -f
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
+    if [ -z ${aria2_www_dir} ]; then
+        aria2_www_dir=${ARIA_WWW_DIR}
+    fi
+
+    ARIA_WWW_DIR=${aria2_www_dir}
+    mkdir ${ARIA_WWW_DIR} -p
+    mv /tmp/AriaNg/dist/* ${ARIA_WWW_DIR} -f
     cd /data
     rm -rf /tmp/AriaNg/
     echo "AriaNg installed."
@@ -212,6 +222,13 @@ function install_ariang_master() {
 
 function install_ariang_release() {
     echo ""
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
+    if [ -z ${aria2_www_dir} ]; then
+        aria2_www_dir=${ARIA_WWW_DIR}
+    fi
+
+    ARIA_WWW_DIR=${aria2_www_dir}
+    mkdir ${ARIA_WWW_DIR} -p
     yum install -y unzip -q >> /dev/null 2>&1
     echo "Checking last AriaNg version..."
     aria_ng_path=`wget -qO- https://github.com/mayswind/AriaNg/releases | grep 'releases/download/' | head -n 1 | awk '{print $2}' | sed 's/href=\"//g' | sed 's/\"//g'`
@@ -220,7 +237,7 @@ function install_ariang_release() {
     # wget --no-check-certificate --progress=bar:force https://github.com${aria_ng_path} -O /tmp/AriaNg.zip >> /dev/null 2>&1
     curl -# -o /tmp/AriaNg.zip -L https://github.com${aria_ng_path}
     echo "Unzip file..."
-    unzip -u -q /tmp/AriaNg.zip -d /data/www/aria2
+    unzip -u -q /tmp/AriaNg.zip -d ${ARIA_WWW_DIR}
     echo "Clean up."
     rm -rf /tmp/AriaNg.zip
     echo "AriaNg installed."
@@ -228,6 +245,12 @@ function install_ariang_release() {
 
 function uninstall_aria2c() {
     echo ""
+    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
+    if [ -z ${aria2_www_dir} ]; then
+        aria2_www_dir=${ARIA_WWW_DIR}
+    fi
+
+    ARIA_WWW_DIR=${aria2_www_dir}
     echo "Removing files..."
 
     if sys_version 6; then
@@ -242,7 +265,7 @@ function uninstall_aria2c() {
 
     rm -rf /usr/local/bin/aria2c
     rm -rf ${ARIA_CONF_DIR}/aria2
-	rm -rf /data/www/aria2
+    rm -rf ${ARIA_WWW_DIR}
     rm -rf /etc/nginx/conf.d/dl.*.conf
 
     service nginx restart
