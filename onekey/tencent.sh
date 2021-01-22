@@ -4,6 +4,10 @@ export PATH
 
 GITHUB_URL="https://raw.githubusercontent.com/luoweihua7/vps-install/master/"
 
+download() {
+    wget --no-check-certificate --no-cache -cq -t3 ${2} -O ${1}
+}
+
 uninstall_qcloud() {
     echo "Uninstall Tencent Cloud services..."
     sh /usr/local/qcloud/stargate/admin/uninstall.sh >> /dev/null 2>&1
@@ -103,6 +107,27 @@ install_nginx() {
     yum install nginx -y
     systemctl enable nginx.service
     service nginx start
+
+    # Change nginx default pages
+    echo ""
+    echo -e "Downloading custom pages..."
+    pages=(
+        index.html
+        40x.html
+        50x.html
+    )
+    for ((i=1;i<=${#pages[@]};i++ )); do
+        hint="${pages[$i-1]}"
+        rm -rf /usr/share/nginx/html/${hint}
+        download "/usr/share/nginx/html/${hint}" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/html/${hint}"
+    done
+
+    sed -i -e "s/#error_page/error_page/g" /etc/nginx/conf.d/default.conf
+    sed -i -e "s/404.html/40x.html/g" /etc/nginx/conf.d/default.conf
+    nginx -s reload
+
+    echo "Nginx default page changed!"
+    echo ""
 }
 
 setup() {
