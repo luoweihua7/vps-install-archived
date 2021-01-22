@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+
+# Font Color
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[0;33m'
+blue='\033[0;34m'
+purple='\033[0;35m'
+cyan='\033[0;36m'
+plain='\033[0m'
+
+# Background Color
+bg_red='\033[41;37m'
+bg_green='\033[42;37m'
+bg_yellow='\033[43;37m'
+bg_blue='\033[44;37m'
+bg_purple='\033[45;37m'
+bg_cyan='\033[46;37m'
+
+# Message
+INFO="${green}[INFO]${plain}"
+WARN="${yellow}[WARN]${plain}"
+ERROR="${bg_yellow}[ERROR]${plain}"
+SUCCESS="${green}[SUCCESS]${plain}"
+READ_INFO=$'\e[31m[INFO]\e[0m'
+
+# 添加防火墙规则，默认udp/tcp同时
+firewall_add() {
+  firewall-cmd --permanent --zone=public --add-port=$1/tcp
+  firewall-cmd --permanent --zone=public --add-port=$1/tcp
+}
+
+firewall_save() {
+  firewall-cmd --reload
+}
+
