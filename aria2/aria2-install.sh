@@ -108,7 +108,7 @@ function install_aria2c() {
     local download_domain=""
     while true
     do
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input AriaNg WebUI domain (eg. www.example.com): ' aria2_domain
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input AriaNg WebUI domain (eg. www.example.com): ' aria2_domain
     if [ -z ${aria2_domain} ]; then
         echo -e "\033[41;37m ERROR \033[0m Domain required!!!"
         continue
@@ -131,7 +131,7 @@ function setup_aria2c() {
     echo ""
 
     # Setup download path
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input download path (default: /data/downloads): ' aria2_download_path
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input download path (default: /data/downloads): ' aria2_download_path
     if [ -z ${aria2_download_path} ]; then
         aria2_download_path="/data/downloads"
     fi
@@ -142,14 +142,14 @@ function setup_aria2c() {
     sed -i -e "s/ARIA_CONF_DIR/${ARIA_CONF_DIR//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
 
     # Setup secret
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input secret (default: qwertyuiop): ' aria2_secret
     if [ -z ${aria2_secret} ]; then
         aria2_secret="qwertyuiop"
     fi
     sed -i -e "s/ARIA_SECRET/${aria2_secret}/g" ${ARIA_CONF_DIR}/aria2/aria2.conf
 
     # IFTTT notification
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Would you want to enable download task completed notification? Y/n: ' ENABLE_NOTIFY
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Would you want to enable download task completed notification? Y/n: ' ENABLE_NOTIFY
     [ -z "${ENABLE_NOTIFY}" ] && ENABLE_NOTIFY="Y"
     case ${ENABLE_NOTIFY} in
         [yY][eE][sS]|[yY])
@@ -158,7 +158,7 @@ function setup_aria2c() {
             echo "Visit https://ifttt.com/maker_webhooks page, and then click \"Document\" button, you will find webhook key."
             while true
             do
-            stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input IFTTT webhook key: ' IFTTT_KEY
+            stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input IFTTT webhook key: ' IFTTT_KEY
             if [ -z ${IFTTT_KEY} ]; then
                 echo -e "\033[41;37m ERROR \033[0m IFTTT webhook key required!!!"
                 echo ""
@@ -182,7 +182,7 @@ function install_ariang() {
     echo "Which type do you want to install? "
     echo "1. release"
     echo "2. master"
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please enter your choice (1, 2. default [1]): ' INSTALLTYPE
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please enter your choice (1, 2. default [1]): ' INSTALLTYPE
     [ -z "$INSTALLTYPE" ] && INSTALLTYPE="1"
 
     case "$INSTALLTYPE" in
@@ -208,7 +208,7 @@ function install_ariang_master() {
     gulp clean build
     npm remove -g gulp bower
 
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
     if [ -z ${aria2_www_dir} ]; then
         aria2_www_dir=${ARIA_WWW_DIR}
     fi
@@ -223,7 +223,7 @@ function install_ariang_master() {
 
 function install_ariang_release() {
     echo ""
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
     if [ -z ${aria2_www_dir} ]; then
         aria2_www_dir=${ARIA_WWW_DIR}
     fi
@@ -246,7 +246,7 @@ function install_ariang_release() {
 
 function uninstall_aria2c() {
     echo ""
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input website file folder (default: /data/www/aria2): ' aria2_www_dir
     if [ -z ${aria2_www_dir} ]; then
         aria2_www_dir=${ARIA_WWW_DIR}
     fi
@@ -281,7 +281,7 @@ function start() {
     echo "1. Install aria2c [Include AriaNG Web UI]"
     echo "2. Uninstall aria2c"
     echo "3. Install AriaNg Web UI"
-    stty erase '^H' && read -p $'[\e\033[0;32mINFO\033[0m] Please input the number and press enter.  (Press other key to exit): ' num
+    stty erase '^H' && stty erase ^? && read -p $'[\e\033[0;32mINFO\033[0m] Please input the number and press enter.  (Press other key to exit): ' num
 
     case "$num" in
     [1] ) (install_aria2c);;
