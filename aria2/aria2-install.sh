@@ -75,6 +75,7 @@ function install_aria2c() {
     rm -rf /tmp/aria2.tar.gz
 
     echo "Installing aria2c..."
+    sed -i -e "s/ARIA_CONF_DIR/${ARIA_CONF_DIR//\//\\/}/g" ${ARIA_CONF_DIR}/aria2/aria2.sh
     mv -f ${ARIA_CONF_DIR}/aria2/aria2c /usr/local/bin
     mv -f ${ARIA_CONF_DIR}/aria2/aria2.sh /etc/init.d/aria2
     chmod 755 /etc/init.d/aria2
