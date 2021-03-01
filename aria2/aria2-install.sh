@@ -164,8 +164,8 @@ function setup_aria2c() {
                 echo ""
                 continue
             fi
-            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" ${ARIA_CONF_DIR}/aria2/on-download-complete.sh
-            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" ${ARIA_CONF_DIR}/aria2/on-download-error.sh
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" ${ARIA_CONF_DIR}/aria2/on-complete.sh
+            sed -i -e "s/IFTTT_KEY/${IFTTT_KEY}/g" ${ARIA_CONF_DIR}/aria2/on-error.sh
             break
             done
             ;;
