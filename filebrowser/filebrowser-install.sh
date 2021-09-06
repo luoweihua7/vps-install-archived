@@ -157,7 +157,8 @@ fb_config() {
 }
 
 install_core() {
-  curl -fsSL https://filebrowser.org/get.sh | bash
+  # curl -fsSL https://filebrowser.org/get.sh | bash
+  curl -fsSL https://raw.githubusercontent.com/filebrowser/get/master/get.sh | bash
 }
 
 config_filebrowser() {

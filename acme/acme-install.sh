@@ -107,12 +107,15 @@ acme_add_domain() {
   # Input Aliyun AccessKey
   echo ""
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input your domain (eg. domain.com, NOT subdomain): " add_domain
-  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input certificate folder (eg. /etc/nginx/cert): " ng_cert_dir
+  stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Please input certificate folder (default /etc/nginx/ssl): " ng_cert_dir
+  [ -z "${ng_cert_dir}" ] && ng_cert_dir="/etc/nginx/ssl"
   echo ""
 
   # regist wildcard domain
   random_record=`fun_randstr`
-  ~/.acme.sh/acme.sh --issue --dns ${DNS_SERVICE} -d ${add_domain} -d *.${add_domain} -d *.${random_record}.${add_domain} --yes-I-know-dns-manual-mode-enough-go-ahead-please --force
+  # 暂时没有时间去兼容zerossl和letsencrypt，直接先hardcode
+  ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+  ~/.acme.sh/acme.sh --issue --dns ${DNS_SERVICE} -d ${add_domain} -d *.${add_domain} -d *.${random_record}.${add_domain} --yes-I-know-dns-manual-mode-enough-go-ahead-please --force --server lesencrypt
 
   # Check certificate exist
   if [ ! -f ~/.acme.sh/${add_domain}/${add_domain}.cer ]; then
@@ -131,8 +134,8 @@ main() {
   echo ""
   echo -e "Which one do you want to do?"
   echo "1. Install acme.sh"
-  echo "2. Add domain"
-  echo "3. Refresh domains"
+  echo "2. Add domain certificate"
+  echo "3. Refresh domain certificates"
   echo ""
   stty erase '^H' && stty erase ^? && read -p "${READ_INFO} Input the number and press enter. (Press any other key to exit) " num
 

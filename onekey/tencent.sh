@@ -47,6 +47,10 @@ setup_ssh() {
     echo "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCuuDQDsn4dWXdmpVrO04yLc4ukE1lACuCdc6o5TTWvNQs7R6BTYrJDxDo0obJHFMaPQ755U5TcoeVP/5P7prsZxKqKrcKSU1G1MPyybXSW7vgvu5zyX65L470S983bM+1sIZT9LtBmnur+Fw80wCPMt70AQ+/URxenmcFr4F8V5eggUZdOF6vpPXDTDs3dXV26gD8Hw/oMwUpkRw7u7Lt2aKcPx/H9ocS4TBFVQRLC2R14rMWOjMNNuYt4dQsi+tCwruf2dYQVLbhxgDWuU6dZd2sdppOuTk+j5uvG/4ONJAvtTWM2FCrRk2DKHDYgntcr37ZNtF2zHjNYRz935Un/ luoweihua7@gmail.com" > ~/.ssh/authorized_keys
     sed -i -e "s/#Port 22/Port 26538/g" /etc/ssh/sshd_config
     sed -i -e "s/#PubkeyAuthentication/PubkeyAuthentication/g" /etc/ssh/sshd_config
+    sed -i -e "s/#AllowTcpForwarding/AllowTcpForwarding/g" /etc/ssh/sshd_config
+    sed -i -e "s/#AllowAgentForwarding/AllowAgentForwarding/g" /etc/ssh/sshd_config
+    sed -i -e "s/#TCPKeepAlive/TCPKeepAlive/g" /etc/ssh/sshd_config
+    sed -i -e "s/#PasswordAuthentication/PasswordAuthentication/g" /etc/ssh/sshd_config
     systemctl restart sshd
     echo "ssh setup finished."
 }
@@ -122,8 +126,8 @@ install_nginx() {
         download "/usr/share/nginx/html/${hint}" "https://raw.githubusercontent.com/luoweihua7/vps-install/master/nginx/html/${hint}"
     done
 
-    sed -i -e "s/#error_page/error_page/g" /etc/nginx/conf.d/default.conf
-    sed -i -e "s/404.html/40x.html/g" /etc/nginx/conf.d/default.conf
+    sed -i -e "s/#error_page/error_page/g" /etc/nginx/conf.d/default.conf >> /dev/null 2>&1
+    sed -i -e "s/404.html/40x.html/g" /etc/nginx/conf.d/default.conf >> /dev/null 2>&1
     nginx -s reload
 
     echo "Nginx default page changed!"
