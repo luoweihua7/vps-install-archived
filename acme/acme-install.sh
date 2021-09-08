@@ -115,7 +115,7 @@ acme_add_domain() {
   random_record=`fun_randstr`
   # 暂时没有时间去兼容zerossl和letsencrypt，直接先hardcode
   ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-  ~/.acme.sh/acme.sh --issue --dns ${DNS_SERVICE} -d ${add_domain} -d *.${add_domain} -d *.${random_record}.${add_domain} --yes-I-know-dns-manual-mode-enough-go-ahead-please --force --server lesencrypt
+  ~/.acme.sh/acme.sh --issue --dns ${DNS_SERVICE} -d ${add_domain} -d *.${add_domain} -d *.${random_record}.${add_domain} --yes-I-know-dns-manual-mode-enough-go-ahead-please --force
 
   # Check certificate exist
   if [ ! -f ~/.acme.sh/${add_domain}/${add_domain}.cer ]; then
