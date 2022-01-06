@@ -41,45 +41,14 @@ V2RAY_PORT=""
 V2RAY_UUID=`cat /proc/sys/kernel/random/uuid`
 V2RAY_PATH=`cat /dev/urandom | head -n 10 | md5sum | head -c 8`
 
-add_firewall() {
-    PORT=$1
-
-    local firewalld_installed=`rpm -qa | grep firewalld | wc -l`
-    if [ ${firewalld_installed} -ne 0 ]; then
-      systemctl status firewalld > /dev/null 2>&1
-      if [ $? -eq 0 ];then
-        firewall-cmd --permanent --zone=public --add-port=${PORT}/tcp -q
-        firewall-cmd --permanent --zone=public --add-port=${PORT}/udp -q
-        firewall-cmd --reload -q
-        echo -e "Firewall port ${PORT} add success."
-      else
-        echo -e "${WARN} Firewalld looks like not running, try to start..."
-        systemctl start firewalld -q
-        if [ $? -eq 0 ];then
-          firewall-cmd --permanent --zone=public --add-port=${PORT}/tcp -q
-          firewall-cmd --permanent --zone=public --add-port=${PORT}/udp -q
-          firewall-cmd --reload -q
-        else
-          echo -e "${ERROR} Try to start firewalld failed. please manually set it if necessary."
-        fi
-      fi
-    else
-      echo -e "${ERROR} Firewalld looks like not installed, please manually set it if necessary."
-    fi
-}
-
-remove_firewall() {
-  PORT=$1
-
-  local firewalld_installed=`rpm -qa | grep firewalld | wc -l`
-  if [ ${firewalld_installed} -ne 0 ]; then
-    firewall-cmd --permanent --zone=public --remove-port=${PORT}/tcp -q
-    firewall-cmd --permanent --zone=public --remove-port=${PORT}/udp -q
-    firewall-cmd --reload -q
-    echo -e "Firewall port ${PORT} removed."
-  else
-    echo -e "${ERROR} Firewalld looks like not installed, please manually set it if necessary."
-  fi
+fun_randstr(){
+    index=0
+    strRandomPass=""
+    for i in {a..z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {A..Z}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {0..9}; do arr[index]=$i; index=`expr ${index} + 1`; done
+    for i in {1..16}; do strRandomPass="$strRandomPass${arr[$RANDOM%$index]}"; done
+    echo $strRandomPass
 }
 
 v2ray_config() {
@@ -117,16 +86,43 @@ preinstall() {
 
 v2ray_core_install() {
   # Force install
-  wget --no-check-certificate https://install.direct/go.sh -O v2ray-core.sh
-  bash v2ray-core.sh --force
-  rm -rf v2ray-core.sh
+  bash <(curl -L https://raw.githubusercontent.com/v2fly/fhs-install-v2ray/master/install-release.sh)
 }
 
 ssl_install() {
   # Download and replace params
   mkdir -p ${v2ray_ssl_dir}
   nginx_conf="${nginx_conf_dir}/${V2RAY_DOMAIN}.conf"
-  wget --no-check-certificate --no-cache -cq -t3 "${git_url}/v2ray/config/nginx_template.conf" -O ${nginx_conf}
+  echo "
+server {
+    listen                443 ssl;
+    ssl_certificate       V2RAY_SSL_DIR/V2RAY_DOMAIN.crt;
+    ssl_certificate_key   V2RAY_SSL_DIR/V2RAY_DOMAIN.key;
+    ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers           HIGH:!aNULL:!MD5;
+    server_name           V2RAY_DOMAIN;
+    index                 index.html index.htm;
+    root                  /usr/share/nginx/html;
+
+    location /V2RAY_PATH {
+        proxy_redirect off;
+        proxy_pass http://127.0.0.1:V2RAY_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection \"upgrade\";
+
+        # Show realip in v2ray access.log
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+    }
+}
+server {
+    listen 80;
+    server_name V2RAY_DOMAIN;
+    return 301 https://V2RAY_DOMAIN\\\$request_uri;
+}
+" > ${nginx_conf}
   sed -i -e "s/V2RAY_DOMAIN/${V2RAY_DOMAIN}/g" ${nginx_conf}
   sed -i -e "s/V2RAY_PORT/${V2RAY_PORT}/g" ${nginx_conf}
   sed -i -e "s/V2RAY_PATH/${V2RAY_PATH}/g" ${nginx_conf}
@@ -161,7 +157,9 @@ ssl_install() {
       export Ali_Key="${access_key}"
       export Ali_Secret="${access_secret}"
 
-      ~/.acme.sh/acme.sh --issue --dns dns_ali -d ${V2RAY_DOMAIN}
+      RANDOM_RECORD=`fun_randstr`
+      ~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+      ~/.acme.sh/acme.sh --issue --dns dns_ali -d ${V2RAY_DOMAIN} -d *.${V2RAY_DOMAIN} -d *.${RANDOM_RECORD}.${V2RAY_DOMAIN} --yes-I-know-dns-manual-mode-enough-go-ahead-please --force
 
       # Check certificate exist
       if [ ! -f ~/.acme.sh/${V2RAY_DOMAIN}/${V2RAY_DOMAIN}.cer ]; then
@@ -192,16 +190,66 @@ v2ray_config_install() {
     rm -rf ${v2ray_conf}
   fi
 
-  wget --no-check-certificate --no-cache -cq -t3 "${git_url}/v2ray/config/config.json" -O ${v2ray_conf}
+  echo "
+{
+  \"log\": {
+    \"access\": \"/var/log/v2ray/access.log\",
+    \"loglevel\": \"warning\",
+    \"error\": \"/var/log/v2ray/error.log\"
+  },
+  \"inbounds\": [
+    {
+      \"port\": V2RAY_PORT,
+      \"listen\": \"127.0.0.1\",
+      \"tag\": \"vmess-in\",
+      \"protocol\": \"vmess\",
+      \"settings\": {
+        \"clients\": [
+          {
+            \"id\": \"V2RAY_UUID\",
+            \"alterId\": 64
+          }
+        ]
+      },
+      \"streamSettings\": {
+        \"network\": \"ws\",
+        \"security\": \"none\",
+        \"wsSettings\": {
+          \"path\": \"/V2RAY_PATH\"
+        }
+      }
+    }
+  ],
+  \"outbounds\": [
+    {
+      \"protocol\": \"freedom\",
+      \"settings\": {},
+      \"tag\": \"direct\"
+    },
+    {
+      \"protocol\": \"blackhole\",
+      \"settings\": {},
+      \"tag\": \"blocked\"
+    }
+  ],
+  \"routing\": {
+    \"domainStrategy\": \"AsIs\",
+    \"rules\": [
+      {
+        \"outboundTag\": \"blocked\",
+        \"type\": \"field\",
+        \"ip\": [
+          \"geoip:private\"
+        ]
+      }
+    ]
+  }
+}
+" > ${v2ray_conf}
 
   sed -i -e "s/V2RAY_UUID/${V2RAY_UUID}/g" ${v2ray_conf}
   sed -i -e "s/V2RAY_PORT/${V2RAY_PORT}/g" ${v2ray_conf}
   sed -i -e "s/V2RAY_PATH/${V2RAY_PATH}/g" ${v2ray_conf}
-}
-
-firewall_config() {
-  add_firewall 80
-  add_firewall 443
 }
 
 startup_v2ray() {
@@ -251,6 +299,7 @@ show_information() {
   echo -e "${bg_blue}   Quantmult   ${plain}"
   echo -e "${green}vmess://`echo -n 'V2Ray = vmess, '${LOCAL_IP}', 443, none, "'${V2RAY_UUID}'", over-tls=true, tls-host='${V2RAY_DOMAIN}', certificate=0, obfs=ws, obfs-path="/'${V2RAY_PATH}'", obfs-header="Host: '${V2RAY_DOMAIN}'"' | base64 -w 0`${plain}"
   echo ""
+  echo -e "If firewall enabled, please configure firewall rules manually"
   echo -e "Please add the configuration manually"
   echo ""
 }
@@ -261,7 +310,6 @@ v2ray_install() {
   v2ray_core_install
   ssl_install
   v2ray_config_install
-  firewall_config
   startup_v2ray
   show_information
 }
