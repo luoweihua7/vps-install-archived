@@ -4,18 +4,18 @@ iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
 iptables -F
 
+# 卸载防火墙和配置
+apt purge -y netfilter-persistent
 # 更新并安装组件
 apt update -y
 apt install -y curl socat ntpdate net-tools nginx
-# 卸载防火墙和配置
-apt purge -y netfilter-persistent
 
 fun_randstr() {
     echo $RANDOM | md5sum | cut -c 1-6
 }
 
 fun_randnum() {
-  local randnum=4443
+  local randnum=8443
   while true
   do
     local rand_port=`shuf -i 10000-59999 -n 1`
