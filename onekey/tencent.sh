@@ -34,6 +34,9 @@ setup_firewall() {
     # DHT
     firewall-cmd --permanent --zone=public --add-port=6881-6999/tcp
     firewall-cmd --permanent --zone=public --add-port=6881-6999/udp
+    # X-UI
+    firewall-cmd --permanent --zone=public --add-port=20001-20005/tcp
+    firewall-cmd --permanent --zone=public --add-port=20001-20005/udp
     # SSH
     firewall-cmd --permanent --zone=public --add-port=26538/tcp
     firewall-cmd --permanent --zone=public --add-port=26538/udp
